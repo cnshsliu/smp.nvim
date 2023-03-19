@@ -1,5 +1,6 @@
 .luacheckcache
 tags
 lua/server/node_modules
+lua/server/smp_server_log.txt
 scratch/
 *.patch

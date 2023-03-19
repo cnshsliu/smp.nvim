@@ -7,14 +7,18 @@ local ltn12 = require("ltn12")
 local body = {}
 local lastlines = { "unset" }
 
-response = table.concat(body)
+local M = {}
+M.server_started = false
+local tmpdir
 
-local function extract_title(html)
-    local title = html:match("<title>(.-)</title>")
-    return title
+if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+    tmpdir = os.getenv("TEMP")
+else
+    tmpdir = "/tmp"
 end
+local logFile = vim.fn.fnamemodify(tmpdir, ":p") .. "smp_client.log"
 
-function open_url(url)
+M.open_url = function(url)
     if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
         vim.fn.system("start " .. url)
     elseif vim.fn.has("unix") == 1 then
@@ -28,69 +32,6 @@ function open_url(url)
     end
 end
 
-local function is_valid_url(url)
-    local url_pattern = "^(https?://[%w-_%.%?%.:/%+=&]+)$"
-    return url:match(url_pattern)
-end
-
-local function fetch_page_title()
-    -- Get the URL from the system clipboard
-    local url = vim.fn.getreg("+")
-
-    -- Check if it's a valid URL
-    -- if not is_valid_url(url) then
-    --     print("Invalid URL.")
-    --     return
-    -- end
-
-    -- Perform a request to fetch the HTML content
-    print("Lookup: ", url)
-    local response_body = {}
-    local headers = {
-        ["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36",
-    }
-    local response_code, response_headers, response_status = http.request({
-        method = "GET",
-        url = url,
-        headers = headers,
-        sink = ltn12.sink.table(response_body),
-    })
-
-    -- Check if the request was successful
-    if response_code ~= 200 then
-        print(
-            "Error: "
-                .. "status:"
-                .. vim.inspect(response_status)
-                .. "code:"
-                .. (response_code or "nil")
-                .. vim.inspect(response_body)
-        )
-        return
-    end
-
-    -- Extract the page title from the HTML
-    local html = table.concat(response_body)
-    local title = extract_title(html)
-
-    -- Print the page title
-    if title then
-        return { url = url, title = title }
-    else
-        return nil
-    end
-end
-
-local M = {}
-M.server_started = false
-local tmpdir
-
-if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
-    tmpdir = os.getenv("TEMP")
-else
-    tmpdir = "/tmp"
-end
-local logFile = vim.fn.fnamemodify(tmpdir, ":p") .. "smp_client.log"
 M.log = function(message)
     local timestamp = os.date("%Y-%m-%d %H:%M:%S")
     local log_file = assert(io.open(logFile, "a"))
@@ -180,7 +121,7 @@ local do_post_data_update = function()
     -- M.log("file_path=" .. file_path)
     local fn = vim.fn.expand(file_path)
     -- M.log("fn=" .. fn)
-    local linesTobePosted = { "no change" }
+    local linesTobePosted
     local lastlines_key = string.format("buf_%d", bufnr)
     -- M.log("Post data update")
 
@@ -248,7 +189,7 @@ M.start = function(openBrowserAfterStart)
     local handle, pid = vim.loop.spawn(cmd, spawn_params)
     -- print("Background process started with PID:", pid)
     if handle then
-        local bufnr = vim.api.nvim_win_get_buf(0)
+        -- local bufnr = vim.api.nvim_win_get_buf(0)
         -- print(string.format("%s, %d", "create autocmd in buffer", bufnr))
         M.pid = pid
         M.server_started = true
@@ -276,7 +217,7 @@ M.start = function(openBrowserAfterStart)
             -- open browser here
             local function open_browser()
                 M.log("Open browser now")
-                open_url(
+                M.open_url(
                     string.format("http://127.0.0.1:3030/preview/%d", bufnr)
                 )
             end
@@ -313,7 +254,7 @@ M.preview = function()
     post_data_update()
     -- open browser here
     local function open_browser()
-        open_url(string.format("http://127.0.0.1:3030/preview/%d", bufnr))
+        M.open_url(string.format("http://127.0.0.1:3030/preview/%d", bufnr))
     end
     vim.defer_fn(open_browser, 300)
 end
