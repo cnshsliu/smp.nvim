@@ -7,7 +7,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 
 ## Contents
 
-- [Features](#features))
+- [Features](#features)
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -19,9 +19,9 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - Smooth scrolling to current line, sync between Neovim and browser
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Ohter Mappings](#other-mappings)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Ohter Mappings](#other-mappings)
 
 ## Features
 
@@ -67,12 +67,13 @@ If you move cursor into a line within a code block, that line will also be highl
 
 ![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
 
-### Refernces link
+### References link
 
-For example, if you have following Markdown text, the `[Marked]` and `[Markdown]` will be displayed as
+For example, if you have following Markdown text,
+the `[Marked]` and `[Markdown]` will be displayed as
 linkes to `https://github.com/markedjs/marked/` and `http://daringfireball.net/projects/markdown/`
 
-```
+```markdown
 [Marked] lets you convert [Markdown] into HTML. Markdown
 is a simple text format whose goal is to be very easy to read and write,
 even when not converted to HTML. This demo page will let you type
@@ -80,12 +81,12 @@ anything you like and see how it gets converted. Live. No more waiting around.
 
 [Marked]: https://github.com/markedjs/marked/
 [Markdown]: http://daringfireball.net/projects/markdown/
-
 ```
 
 ### Custom Markdown CSS
 
-You may use your own markdown css file by define a vim global variable named `smp_cssfile`, for example:
+You may use your own markdown CSS file by define a vim global variable
+named `smp_cssfile`, for example:
 
 For LunarVim, use:
 
@@ -120,17 +121,22 @@ I will fix it ASAP. thanks a lot.
 Packer.nvim
 
 ```lua
-	{
-		"cnshsliu/simple_markdown_preview.nvim",
-		run = "cd server && npm install",
-	},
+  {
+    "cnshsliu/simple_markdown_preview.nvim",
+    run = "cd server && npm install",
+  },
 ```
 
-I don't use other package manager, if you are familiar with them, kindly update this README.
+I don't use other package manager, if you are familiar with them,
+kindly update this README.
 
 ### Usage
 
-Press `:SMPPreview` to start to preview the current buffer.
+Press
+
+`:SMPPreview`
+
+to start to preview the current buffer.
 
 ### Other Mappings
 
@@ -142,3 +148,13 @@ Press `:SMPPreview` to start to preview the current buffer.
     vim.keymap.set("n", "<leader>k1", "<cmd>SMPPasteUrl<CR>")
     vim.keymap.set("n", "<leader>k2", "<cmd>SMPPasteWikiWord<CR>")
 ```
+
+Explains:
+. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
+. `<leader>kw`: wrap the word under cursor as a wiki link
+. `<leader>kl`: wrap the current line as a wiki link
+. `<leader>k1`: paste url string in system clipboard as a Markdown link: `[](URL_FROM_SYSTEM_CLIPBOARD)`
+. `<leader>k2`: paste text in system clipboard as a wiki link: `[[TEXT_IN_SYSTEM_CLIPBOARD]]`
+
+paste URL is specially useful when you are browsing and want to copy the
+web page url from browser and insert it into your note.
