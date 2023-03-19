@@ -60,7 +60,7 @@ Packer.nvim
 
 ```lua
 	{
-		"https://github.com/cnshsliu/simple_markdown_preview.nvim",
+		"cnshsliu/simple_markdown_preview.nvim",
 		run = "cd server && npm install",
 	},
 ```
