@@ -23,12 +23,25 @@ Besides the basic features of markdown preview, this plugin has the following:
 Clickable Wiki link or telekasten link in double bracket form: \[\[WIKI_WORD]]
 If the target local MD file does not exist, show it in warning color.
 
+![image](https://user-images.githubusercontent.com/2124836/226204554-4d0bd902-553f-4742-987d-6c1aaf3427a8.png)
+
+
 ## Codes line highlight
 
 If you move cursor into a line within a code block, that line will also be highlighted.
+![image](https://user-images.githubusercontent.com/2124836/226204837-fe3016c9-1b8b-476e-921a-f075764d27b3.png)
+
+## Cursor following
+
+A red block indicator always locates at the current line you are editting
+
+https://user-images.githubusercontent.com/2124836/226205371-b9710ad5-5480-4fc3-ba80-fef4549c9bce.mp4
+
+
 
 ## PlantUML
-![image](https://user-images.githubusercontent.com/2124836/226204281-54d0dccc-bbc9-40bf-910e-bbd96aa9b180.png)
+![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
+
 
 
 ## Refernces link
