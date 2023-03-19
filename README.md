@@ -1,7 +1,7 @@
 # Simple Markdown Preview
 
 A lightweight, easy-to-use Markdown preview plugin for NeoVim, which live updates
-and feature-rich, to unleash your Markdown imagination.
+and feature-rich, to fully unleash your Markdown imagination.
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
