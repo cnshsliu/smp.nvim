@@ -1,9 +1,7 @@
 # Simple Markdown Preview
 
 A lightweight, easy-to-use Markdown preview plugin for NeoVim, which live updates
-and feature-rich.
-
-A NeoVim (lua) plugin for previewing Markdown files, keep syncing with your NeoVim editting.
+and feature-rich, to unleash your Markdown imagination.
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
@@ -19,11 +17,20 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [References link](#references-link)
   - [Custom Markdown CSS support](#custom-markdown-css)
   - Smooth scrolling to current line, sync between NeoVim and browser
+  - On the roads:
+    - Fully customizable
+    - Configurable header and footer (with hotkey to change among several sets  
+      of header and footer while editting in NeoVim)
+    - One key (command) in NeoVim to start print in browser, there, you could  
+      choose to send to a physical printer or print to PDF.
+    - Latex for math equations
+    - and more... (fully unleash your imagination, you ask, I implement )
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Key mappings](#mappings)
+- [Need your helps](#ask-for-your-help)
 - [Others](#others)
 
 ## Features
@@ -172,6 +179,15 @@ web page url from browser and insert it into your note.
 ## Contributing
 
 Feel free to open issues or submit pull requests to contribute to this project.
+
+## Ask for your help
+
+Fully unleash your imagination about Markdown, I realize it for you.
+
+- Test on different OSs, environment.
+- Issues
+- PRs
+- Suggestions
 
 ## Others
 
