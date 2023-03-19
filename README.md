@@ -78,6 +78,7 @@ If you move cursor into a line within a code block, that line will also be highl
 ![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
 
 ### Latex
+![image](https://user-images.githubusercontent.com/2124836/226216829-805a95e4-9dfc-47ed-985f-9da6c24b0a91.png)
 
 ### References link
 
