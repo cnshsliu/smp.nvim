@@ -1,6 +1,7 @@
 'use strict';
 
 const marked = require('marked');
+const katex = require('katex');
 const path = require('path');
 const Hapi = require('@hapi/hapi');
 const fs = require('fs');
@@ -17,6 +18,8 @@ const getStylesheet = function () {
   <link rel="stylesheet" href="${smpConfig.css}" type="text/css">
 	<link rel="stylesheet" href="/styles/highlight-github.css" type="text/css">
 	<link rel="stylesheet" href="/styles/smp.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css">
+
 	
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
@@ -177,8 +180,33 @@ function logToFile(message) {
 
 // Usage:
 logToFile('This is a log message.');
+const renderer = new marked.Renderer();
+
+// Override the 'codespan' function to handle inline math
+renderer.codespan = function (text) {
+	if (text.startsWith('\\(') && text.endsWith('\\)')) {
+		const latex = text.slice(2, -2);
+		return katex.renderToString(latex, { throwOnError: false });
+	}
+	return `<code>${text}</code>`;
+};
+
+const hljs = require('highlight.js');
+let hl = function (code, lang) {
+	const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+	return hljs.highlight(code, { language }).value;
+};
+
+// Override the 'code' function to handle block-level math
+renderer.code = function (code, infostring) {
+	if (infostring === 'math') {
+		return katex.renderToString(code, { displayMode: true, throwOnError: false });
+	}
+	return `<pre><code class="hljs language-${infostring}">${hl(code, infostring)}</code></pre>`;
+};
+
 marked.setOptions({
-	renderer: new marked.Renderer(),
+	renderer: renderer,
 	highlight: function (code, lang) {
 		const hljs = require('highlight.js');
 		const language = hljs.getLanguage(lang) ? lang : 'plaintext';
