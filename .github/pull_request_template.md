@@ -1,4 +1,3 @@
-
 <!--
   You are amazing! Thanks for contributing to our project!
   Please, DO NOT DELETE ANY TEXT from this template! (unless instructed).
@@ -17,7 +16,7 @@
 ## Type of change
 
 <!--
-  What type of change does your PR introduce to Telekasten?
+  What type of change does your PR introduce to SMP?
   NOTE: Please, check only 1! box!
   If your PR requires multiple boxes to be checked, you'll most likely need to
   split it into multiple PRs. This makes things easier and faster to code review.
@@ -53,7 +52,6 @@
 - [ ] The code has been formatted using Stylua (a `.stylua.toml` file is provided)
 - [ ] The code has been checked with luacheck (a `.luacheckrc` file is provided)
 - [ ] The `README.md` has been updated according to this change.
-- [ ] The `doc/telekasten.txt` helpfile has been updated according to this change.
 
 <!--
   Thank you for contributing <3
