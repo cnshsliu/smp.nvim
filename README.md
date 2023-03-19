@@ -14,6 +14,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [A red block indicator points to current editting line](#cursor-following)
   - [Highlight current line in code blocks](#codes-line-highlight)
   - [PlantUML](#plantuml)
+  - [Latex](#latex)
   - [References link](#references-link)
   - [Custom Markdown CSS support](#custom-markdown-css)
   - Smooth scrolling to current line, sync between NeoVim and browser
@@ -23,7 +24,6 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
       of header and footer while editting in NeoVim)
     - One key (command) in NeoVim to start print in browser, there, you could  
       choose to send to a physical printer or print to PDF.
-    - Latex for math equations
     - and more... (fully unleash your imagination, you ask, I implement )
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
@@ -76,6 +76,8 @@ If you move cursor into a line within a code block, that line will also be highl
 ### PlantUML
 
 ![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
+
+### Latex
 
 ### References link
 
