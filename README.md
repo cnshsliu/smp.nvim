@@ -21,7 +21,8 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 - [Getting started](#getting-started)
   - [Installation](#installation)
   - [Usage](#usage)
-  - [Ohter Mappings](#other-mappings)
+  - [Key mappings](#mappings)
+- [Others](#others)
 
 ## Features
 
@@ -106,14 +107,6 @@ let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
 
 2. Node.js v14.0 or higher.
 
-BTW, For note taking, suggest [Telekasten](https://github.com/renerocksai/telekasten.nvim)
-
-I take notes with Telekasten everyday, and just found I need another Markdown
-previewer, so I wrote this one,
-I am with a Macbook pro, and this plugin is tested on MacOS only,
-If you find any bugs on other OSs, kindly post an issue,
-I will fix it ASAP. thanks a lot.
-
 ## Getting started
 
 ### Installation
@@ -122,7 +115,7 @@ Packer (packer.nvim)
 
 ```lua
 use {
-  'myusername/example', 
+  'myusername/example',
   run="cd server && npm install"
 }
 ```
@@ -138,7 +131,7 @@ Press
 
 to start to preview the current buffer.
 
-### Other Mappings
+### Mappings
 
 ```lua
     vim.keymap.set("n", "<leader>kt", ":lua require('simple_markdown_preview').wrapwiki_visual()<CR>")
@@ -150,12 +143,39 @@ to start to preview the current buffer.
 ```
 
 Explains:
+
 1. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
 2. `<leader>kw`: wrap the word under cursor as a wiki link
 3. `<leader>kl`: wrap the current line as a wiki link
 4. `<leader>k1`: paste url string in system clipboard as a Markdown link: `[](URL_FROM_SYSTEM_CLIPBOARD)`
 5. `<leader>k2`: paste text in system clipboard as a wiki link: `[[TEXT_IN_SYSTEM_CLIPBOARD]]`
 
-
 paste URL is specially useful when you are browsing and want to copy the
 web page url from browser and insert it into your note.
+
+## Others
+
+SMP uses port 3030, a configuration to enable other port
+you choose has not been implemented at this moment,
+3030 may cause confliction with your other program,
+if this is your case and you find out that port configuration is
+must-to-have for you, please raise an issue.
+I will add it ASAP.
+
+For note taking, suggest [Telekasten](https://github.com/renerocksai/telekasten.nvim)
+I take notes with Telekasten everyday, and just found I need another Markdown
+previewer, so I wrote this one,
+I am with a Macbook Pro, and this plugin is tested on MacOS only,
+If you find any bugs on other OSs, kindly raise an issue,
+I will fix it ASAP. thanks a lot.
+
+I also contribute to Telekasten development, provides `:Telekasten show_book`
+command to it, "show_book" will display the outline of our Telekasten notes
+on the right side of Neovim window, includes tags, backlinks, links, todos,
+headers etc. Telekasten show_book also enable you to search by tags or text
+incrementally, and you can save your query condition for later use.
+
+At this moment, the PR of show_book is waiting for accepting yet,
+you may use my repo to try it's power,
+use `cnshsliu/telekasten.nvim` in your init.lua and give it a try,
+I am sure you will love it.
