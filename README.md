@@ -182,12 +182,14 @@ Feel free to open issues or submit pull requests to contribute to this project.
 
 ## Ask for your help
 
-Fully unleash your imagination about Markdown, I realize it for you.
+Need your help, and welcome your contribution
 
-- Test on different OSs, environment.
-- Issues
-- PRs
-- Suggestions
+- Test on different OSs, environments.
+- Raise issues
+- Submit PRs
+- Give Suggestions
+
+  Thanks a lot, together we make SMP nicer.
 
 ## Others
 
