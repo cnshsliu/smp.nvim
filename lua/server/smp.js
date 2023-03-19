@@ -5,6 +5,7 @@ const path = require('path');
 const Hapi = require('@hapi/hapi');
 const fs = require('fs');
 const BookUtils = require('./bookutils');
+const plantumlEncoder = require('plantuml-encoder');
 
 const stylesheet = `
   <link rel="stylesheet" href="/styles/github-markdown.css" type="text/css">
@@ -203,6 +204,17 @@ function isValidUrl(string) {
 	return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
+function generatePlantUmlImageUrl(plantUmlSource) {
+	const encodedPlantUml = plantumlEncoder.encode(plantUmlSource);
+	const plantUmlServerUrl = 'http://www.plantuml.com/plantuml/img/';
+	return plantUmlServerUrl + encodedPlantUml;
+}
+const indicator = function (lnr) {
+	return `<a href="lucas_tkbp_${lnr + 1}" name="lucas_tkbp_${lnr + 1}"><span class="lucas_tkbp_${
+		lnr + 1
+	}"></span></a>`;
+};
+
 const patchLine = (line, lnr, mydir, patchLineNr = true) => {
 	//Reference , dont' touch
 	logToFile('patchline:', line);
@@ -247,12 +259,19 @@ const patchLine = (line, lnr, mydir, patchLineNr = true) => {
 		});
 		logToFile(`Replace [${line}] to [${outputString}]`);
 		line = outputString;
+	} else if (line === 'PLANTUML') {
+		const plantUmlSource = `
+@startuml
+actor User
+User -> System: Login
+System -> User: Welcome
+@enduml
+`;
+
+		const imageUrl = generatePlantUmlImageUrl(plantUmlSource);
+		line = `<img src=${imageUrl}/>`;
 	}
-	return patchLineNr
-		? `${line}<a href="lucas_tkbp_${lnr + 1}" name="lucas_tkbp_${
-				lnr + 1
-		  }"><span class="lucas_tkbp_${lnr + 1}"></span></a>`
-		: line;
+	return patchLineNr ? `${line}${indicator(lnr)}` : line;
 };
 const init = async () => {
 	const server = Hapi.server({
@@ -396,6 +415,7 @@ const init = async () => {
 				return h.response('Filename is undefined, bypass update');
 			}
 			let mydir = path.dirname(fn);
+			let codeLang = '';
 			if (lines.length > 0 && lines[0] !== 'NO_CHANGE') {
 				//update content
 				for (let i = 0; i < lines.length; i++) {
@@ -404,14 +424,29 @@ const init = async () => {
 					patched.push(patchLine(lines[i], i, mydir, true));
 
 					if (x.match(/^\s*`/)) {
-						if (codeStart < 0) codeStart = i;
-						else codeEnd = i;
+						if (codeStart < 0) {
+							codeStart = i;
+							let match = x.match(/```(\w*)/);
+							if (match) {
+								codeLang = match[1];
+							} else {
+								codeLang = '';
+							}
+						} else codeEnd = i;
 						if (codeEnd > 0) {
 							for (let j = codeStart; j <= codeEnd; j++) {
 								patched[j] = pure[j];
 							}
+							if (codeLang === 'plantuml') {
+								let codeBody = patched.slice(codeStart + 1, codeEnd);
+								const plantUmlSource = codeBody.join('\n');
+								const imageUrl = generatePlantUmlImageUrl(plantUmlSource);
+								patched[codeStart] = `<img src=${imageUrl}/>${indicator(codeStart)}`;
+								patched.splice(codeStart + 1, codeEnd - codeStart);
+							}
 							codeStart = -1;
 							codeEnd = -1;
+							codeLang = '';
 						}
 					}
 				}

@@ -3,11 +3,7 @@
 A Neovim (lua) plugin for live-previewing Markdown files,
 specially designed to work with wiki, telekasten etc.
 
-
-
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
-
-
 
 ## Features
 
@@ -20,6 +16,7 @@ Besides the basic features of markdown preview, this plugin has the following:
 5. Support references link
 6. Smooth scrolling to current line, sync between Neovim and browser
 7. A red block indicator points to current editting line
+8. Support [PlantUML](https://plantuml.com)
 
 ## Wiki/Telekasten Link Support
 

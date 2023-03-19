@@ -25,7 +25,8 @@
 		"@hapi/hapi": "^20.2.1",
 		"@hapi/inert": "^7.1.0",
 		"highlight.js": "^11.7.0",
-		"marked": "^4.0.12"
+		"marked": "^4.0.12",
+		"plantuml-encoder": "^1.4.0"
 	},
 	"private": true,
 	"main": "build/index",
