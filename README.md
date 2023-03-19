@@ -1,7 +1,6 @@
-# Simple Markdown Preview Demo
+# Simple Markdown Preview
 
-A Neovim (lua) plugin for live-previewing Markdown files,
-specially designed to work with wiki, telekasten etc.
+A Neovim (lua) plugin for previewing Markdown files, keep syncing with your Neovim editting.
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
