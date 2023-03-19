@@ -1,6 +1,9 @@
 # Simple Markdown Preview
 
-A Neovim (lua) plugin for previewing Markdown files, keep syncing with your Neovim editting.
+A lightweight, easy-to-use Markdown preview plugin for NeoVim, which live updates
+and feature-rich.
+
+A NeoVim (lua) plugin for previewing Markdown files, keep syncing with your NeoVim editting.
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
@@ -15,7 +18,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [PlantUML](#plantuml)
   - [References link](#references-link)
   - [Custom Markdown CSS support](#custom-markdown-css)
-  - Smooth scrolling to current line, sync between Neovim and browser
+  - Smooth scrolling to current line, sync between NeoVim and browser
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Installation](#installation)
@@ -94,7 +97,7 @@ For LunarVim, use:
 vim.g.smp_cssfile = '~/.config/nvim/my_markdown.css'
 ```
 
-Normal Neovim:
+Normal NeoVim:
 
 ```vim
 let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
@@ -102,7 +105,7 @@ let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
 
 ## Requirements
 
-1. Neovim v0.6.0 or higher.
+1. NeoVim v0.6.0 or higher.
 
 2. Node.js v14.0 or higher.
 
@@ -130,6 +133,20 @@ Press
 
 to start to preview the current buffer.
 
+1. `:SMPPreview`: start service and preview the current buffer`
+2. `:SMPStart`: start background service without open browser
+3. `:SMPStop`: stop background service
+
+Normally, you only use SMPPreview command, if service is not started,
+it will start service first, then open browser for previewing, otherwise,
+it will preview directly.
+
+When you close NeoVim window, the background service will be shutdown
+as well. you don't have to close it manually.
+
+The background service is written with Node.js, that's why Node.js is
+in the dependency list of this plugin.
+
 ### Mappings
 
 ```lua
@@ -152,6 +169,10 @@ Explains:
 paste URL is specially useful when you are browsing and want to copy the
 web page url from browser and insert it into your note.
 
+## Contributing
+
+Feel free to open issues or submit pull requests to contribute to this project.
+
 ## Others
 
 SMP uses port 3030, a configuration to enable other port
@@ -170,7 +191,7 @@ I will fix it ASAP. thanks a lot.
 
 I also contribute to Telekasten development, provides `:Telekasten show_book`
 command to it, "show_book" will display the outline of our Telekasten notes
-on the right side of Neovim window, includes tags, backlinks, links, todos,
+on the right side of NeoVim window, includes tags, backlinks, links, todos,
 headers etc. Telekasten show_book also enable you to search by tags or text
 incrementally, and you can save your query condition for later use.
 
