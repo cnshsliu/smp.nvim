@@ -118,16 +118,16 @@ I will fix it ASAP. thanks a lot.
 
 ### Installation
 
-Packer.nvim
+Packer (packer.nvim)
 
 ```lua
-  {
-    "cnshsliu/simple_markdown_preview.nvim",
-    run = "cd server && npm install",
-  },
+use {
+  'myusername/example', 
+  run="cd server && npm install"
+}
 ```
 
-I don't use other package manager, if you are familiar with them,
+I don't use other package manager than Packer, if you are familiar with them,
 kindly update this README.
 
 ### Usage
@@ -150,11 +150,12 @@ to start to preview the current buffer.
 ```
 
 Explains:
-. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
-. `<leader>kw`: wrap the word under cursor as a wiki link
-. `<leader>kl`: wrap the current line as a wiki link
-. `<leader>k1`: paste url string in system clipboard as a Markdown link: `[](URL_FROM_SYSTEM_CLIPBOARD)`
-. `<leader>k2`: paste text in system clipboard as a wiki link: `[[TEXT_IN_SYSTEM_CLIPBOARD]]`
+1. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
+2. `<leader>kw`: wrap the word under cursor as a wiki link
+3. `<leader>kl`: wrap the current line as a wiki link
+4. `<leader>k1`: paste url string in system clipboard as a Markdown link: `[](URL_FROM_SYSTEM_CLIPBOARD)`
+5. `<leader>k2`: paste text in system clipboard as a wiki link: `[[TEXT_IN_SYSTEM_CLIPBOARD]]`
+
 
 paste URL is specially useful when you are browsing and want to copy the
 web page url from browser and insert it into your note.
