@@ -7,14 +7,20 @@ const fs = require('fs');
 const BookUtils = require('./bookutils');
 const plantumlEncoder = require('plantuml-encoder');
 
-const stylesheet = `
-  <link rel="stylesheet" href="/styles/github-markdown.css" type="text/css">
+const defaultMarkDownCss = '/styles/github-markdown.css';
+const smpConfig = {
+	css: defaultMarkDownCss,
+};
+
+const getStylesheet = function () {
+	const stylesheet = `
+  <link rel="stylesheet" href="${smpConfig.css}" type="text/css">
 	<link rel="stylesheet" href="/styles/highlight-github.css" type="text/css">
 	<link rel="stylesheet" href="/styles/smp.css" type="text/css">
 	
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    #markdown-body {
+    .markdown-body {
       box-sizing: border-box;
       min-width: 200px;
       max-width: 980px;
@@ -23,7 +29,7 @@ const stylesheet = `
     }
 
     @media (max-width: 767px) {
-      #markdown-body {
+      .markdown-body {
         padding: 15px;
       }
     }
@@ -36,6 +42,9 @@ const stylesheet = `
 
   </style>
 `;
+
+	return stylesheet;
+};
 
 function generateUUIDv4() {
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -119,7 +128,7 @@ function fetchData() {
       .then((data) => {
         switch(data.code){
           case 'touched_all':
-            document.querySelector("#markdown-body").innerHTML = data.html;
+            document.querySelector(".markdown-body").innerHTML = data.html;
             scrollToLine(data.linenr, data.thisline);
             break;
           case 'touched_line':
@@ -217,7 +226,6 @@ const indicator = function (lnr) {
 
 const patchLine = (line, lnr, mydir, patchLineNr = true) => {
 	//Reference , dont' touch
-	logToFile('patchline:', line);
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
 		//Refen
 		return line;
@@ -257,22 +265,12 @@ const patchLine = (line, lnr, mydir, patchLineNr = true) => {
 				return `[${p1}](/SMP_LINK/${Buffer.from(fn).toString('base64')})`;
 			}
 		});
-		logToFile(`Replace [${line}] to [${outputString}]`);
+		// logToFile(`Replace [${line}] to [${outputString}]`);
 		line = outputString;
-	} else if (line === 'PLANTUML') {
-		const plantUmlSource = `
-@startuml
-actor User
-User -> System: Login
-System -> User: Welcome
-@enduml
-`;
-
-		const imageUrl = generatePlantUmlImageUrl(plantUmlSource);
-		line = `<img src=${imageUrl}/>`;
 	}
 	return patchLineNr ? `${line}${indicator(lnr)}` : line;
 };
+
 const init = async () => {
 	const server = Hapi.server({
 		port: 3030,
@@ -307,21 +305,18 @@ const init = async () => {
 		method: 'GET',
 		path: '/preview/{bufnr}',
 		handler: (request, h) => {
-			// Compile
 			let md_cache = string_stores['bufnr_' + request.params.bufnr];
 			if (md_cache) {
-				logToFile('MD preview for bufnr ' + request.params.bufnr);
 				const data = marked.parse(md_cache.string);
 
 				return h.response(
-					stylesheet +
-						'<article id="markdown-body">' +
+					getStylesheet() +
+						'<article class="markdown-body">' +
 						data +
 						'</article>' +
 						getSmoothScrollScript(request.params.bufnr, md_cache.pos[0], md_cache.thisline.trim()),
 				);
 			} else {
-				logToFile('MD preview for bufnr ' + request.params.bufnr + ' not found');
 				return h.response('Not found');
 			}
 		},
@@ -331,7 +326,6 @@ const init = async () => {
 		path: '/SMP_LINK/{fn}',
 		handler: (request, h) => {
 			let fn = Buffer.from(request.params.fn, 'base64').toString();
-			logToFile('send image: ' + fn);
 			return h.file(fn, { confine: false });
 		},
 	});
@@ -391,10 +385,29 @@ const init = async () => {
 				md = patchLine(md, 0, mydir, false);
 				const data = marked.parse(md);
 
-				return h.response(stylesheet + '<article class="markdown-body">' + data + '</article>');
+				return h.response(
+					getStylesheet() + '<article class="markdown-body">' + data + '</article>',
+				);
 			} else {
 				logToFile('Zettel not found: ' + fn);
 				return h.response('Not found');
+			}
+		},
+	});
+	server.route({
+		method: 'POST',
+		path: '/config',
+		handler: (request, h) => {
+			let payload = request.payload;
+			if (payload.cssfile) {
+				if (fs.existsSync(payload.cssfile)) {
+					smpConfig.css = `http://127.0.0.1:3030/SMP_LINK/${Buffer.from(payload.cssfile).toString(
+						'base64',
+					)}`;
+				} else {
+					smpConfig.css = defaultMarkDownCss;
+					logToFile('css does not exist: ' + payload.cssfile);
+				}
 			}
 		},
 	});
@@ -466,7 +479,7 @@ const init = async () => {
 				// 		console.log('File written successfully');
 				// 	}
 				// });
-				logToFile('Write store for bufnr ' + payload.bufnr);
+				// logToFile('Write store for bufnr ' + payload.bufnr);
 				string_stores['bufnr_' + payload.bufnr] = {
 					string: md_string,
 					pos: payload.pos,

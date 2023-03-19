@@ -102,6 +102,16 @@ local function create_limited_function(func, time_period)
     end
 end
 
+local do_post_smp_config = function()
+    local config = {
+        cssfile = vim.g.smp_cssfile,
+    }
+    if config.cssfile then
+        config.cssfile = vim.fn.expand(config.cssfile)
+    end
+    M.post("127.0.0.1", 3030, "config", config)
+end
+
 local do_post_data_update = function()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local pos = vim.api.nvim_win_get_cursor(0)
@@ -214,6 +224,7 @@ M.start = function(openBrowserAfterStart)
             local lastlines_key = string.format("buf_%d", bufnr)
             lastlines[lastlines_key] = nil
             do_post_data_update()
+            do_post_smp_config()
             -- open browser here
             local function open_browser()
                 M.log("Open browser now")
