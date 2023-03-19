@@ -17,6 +17,7 @@ Besides the basic features of markdown preview, this plugin has the following:
 6. Smooth scrolling to current line, sync between Neovim and browser
 7. A red block indicator points to current editting line
 8. Support [PlantUML](https://plantuml.com)
+9. Custom Markdown CSS support
 
 ## Wiki/Telekasten Link Support
 
@@ -24,7 +25,6 @@ Clickable Wiki link or telekasten link in double bracket form: \[\[WIKI_WORD]]
 If the target local MD file does not exist, show it in warning color.
 
 ![image](https://user-images.githubusercontent.com/2124836/226204554-4d0bd902-553f-4742-987d-6c1aaf3427a8.png)
-
 
 ## Codes line highlight
 
@@ -37,12 +37,9 @@ A red block indicator always locates at the current line you are editting
 
 https://user-images.githubusercontent.com/2124836/226205371-b9710ad5-5480-4fc3-ba80-fef4549c9bce.mp4
 
-
-
 ## PlantUML
+
 ![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
-
-
 
 ## Refernces link
 
@@ -58,6 +55,22 @@ anything you like and see how it gets converted. Live. No more waiting around.
 [Marked]: https://github.com/markedjs/marked/
 [Markdown]: http://daringfireball.net/projects/markdown/
 
+```
+
+## Custom Markdown CSS
+
+You may use your own markdown css file by define a vim global variable named `smp_cssfile`, for example:
+
+For LunarVim, use:
+
+```lua
+vim.g.smp_cssfile = '~/.config/nvim/my_markdown.css'
+```
+
+Normal Neovim:
+
+```vim
+let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
 ```
 
 ## Requirements
