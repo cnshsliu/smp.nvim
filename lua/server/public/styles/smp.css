@@ -1,0 +1,21 @@
+.notfound {
+	background-color: rgb(255, 193, 7);
+	border: 1px solid rgb(255, 193, 7);
+	border-radius: 3px;
+	padding: 2px;
+}
+.zettel {
+	border: 1px solid rgb(0, 123, 255);
+	border-radius: 3px;
+	padding: 5px;
+	margin: 2px;
+}
+.zettel a {
+	text-decoration: none;
+}
+.zettel a:hover {
+	text-decoration: none;
+}
+#markdown-body img {
+	max-width: 100%;
+}
