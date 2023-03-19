@@ -27,6 +27,10 @@ If the target local MD file does not exist, show it in warning color.
 
 If you move cursor into a line within a code block, that line will also be highlighted.
 
+## PlantUML
+![image](https://user-images.githubusercontent.com/2124836/226204281-54d0dccc-bbc9-40bf-910e-bbd96aa9b180.png)
+
+
 ## Refernces link
 
 For example, if you have following Markdown text, the `[Marked]` and `[Markdown]` will be displayed as
