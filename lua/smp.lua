@@ -1,4 +1,5 @@
 local Json = require("json")
+local Path = require("plenary.path")
 
 local vim = vim
 local http = require("socket.http")
@@ -105,9 +106,13 @@ end
 local do_post_smp_config = function()
     local config = {
         cssfile = vim.g.smp_cssfile,
+        snippets_folder = vim.g.smp_snippets_folder,
     }
     if config.cssfile then
         config.cssfile = vim.fn.expand(config.cssfile)
+    end
+    if config.snippets_folder then
+        config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
     M.post("127.0.0.1", 3030, "config", config)
 end
@@ -168,6 +173,49 @@ local do_post_data_update = function()
 end
 
 local post_data_update = create_limited_function(do_post_data_update, 400)
+
+M.expand_snippet = function()
+    local linenr = vim.fn.line(".")
+    local line = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
+    local match = string.match(line, "%$%$(.-)%$%$")
+    if match then
+        print("match=" .. vim.inspect(match))
+        local snippet_name = string.gsub(match, "^%s*(.-)%s*$", "%1")
+        local snippet_path = Path.new(vim.fn.expand(vim.g.smp_snippets_folder))
+        local fullpath = snippet_path:joinpath(snippet_name .. ".md")
+        local file = io.open(fullpath.filename, "r")
+        if file then
+            M.log("Expand snippet " .. fullpath.filename)
+            local contents = file:read("*all")
+            file:close()
+            M.log("contents=" .. contents)
+            vim.fn.setreg("z", contents)
+            local isLastLine = false
+            if linenr == vim.api.nvim_buf_line_count(0) then
+                isLastLine = true
+            end
+            if isLastLine then
+                vim.fn.feedkeys("dd", "n")
+                vim.fn.feedkeys('"zp')
+            else
+                vim.fn.feedkeys("dd", "n")
+                vim.fn.feedkeys('"zP')
+            end
+        else
+            vim.api.nvim_buf_set_lines(
+                0,
+                linenr,
+                linenr,
+                true,
+                { "Snippet not found: " .. fullpath.filename }
+            )
+            vim.defer_fn(function()
+                vim.api.nvim_win_set_cursor(0, { linenr, 0 })
+                vim.fn.feedkeys("u")
+            end, 2000)
+        end
+    end
+end
 
 M.start = function(openBrowserAfterStart)
     openBrowserAfterStart = openBrowserAfterStart or false

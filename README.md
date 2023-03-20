@@ -113,6 +113,8 @@ Normal NeoVim:
 let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
 ```
 
+If the file does not exist, it will fallback to the default CSS.
+
 ## Requirements
 
 1. NeoVim v0.6.0 or higher.
@@ -139,15 +141,15 @@ kindly update this README.
 
 Press
 
-`:SMPPreview`
+`:SmpPreview`
 
 to start to preview the current buffer.
 
-1. `:SMPPreview`: start service and preview the current buffer`
-2. `:SMPStart`: start background service without open browser
-3. `:SMPStop`: stop background service
+1. `:SmpPreview`: start service and preview the current buffer`
+2. `:SmpStart`: start background service without open browser
+3. `:SmpStop`: stop background service
 
-Normally, you only use SMPPreview command, if service is not started,
+Normally, you only use SmpPreview command, if service is not started,
 it will start service first, then open browser for previewing, otherwise,
 it will preview directly.
 
@@ -160,12 +162,12 @@ in the dependency list of this plugin.
 ### Mappings
 
 ```lua
-    vim.keymap.set("n", "<leader>kt", ":lua require('simple_markdown_preview').wrapwiki_visual()<CR>")
-    vim.keymap.set("v", "<leader>kv", ":lua require('simple_markdown_preview').wrapwiki_visual()<CR>")
-    vim.keymap.set("n", "<leader>kw", ":lua require('simple_markdown_preview').wrapwiki_word()<CR>")
-    vim.keymap.set("n", "<leader>kl", ":lua require('simple_markdown_preview').wrapwiki_line()<CR>")
-    vim.keymap.set("n", "<leader>k1", "<cmd>SMPPasteUrl<CR>")
-    vim.keymap.set("n", "<leader>k2", "<cmd>SMPPasteWikiWord<CR>")
+    vim.keymap.set("n", "<leader>kt", ":lua require('smp').wrapwiki_visual()<CR>")
+    vim.keymap.set("v", "<leader>kv", ":lua require('smp').wrapwiki_visual()<CR>")
+    vim.keymap.set("n", "<leader>kw", ":lua require('smp').wrapwiki_word()<CR>")
+    vim.keymap.set("n", "<leader>kl", ":lua require('smp').wrapwiki_line()<CR>")
+    vim.keymap.set("n", "<leader>k1", "<cmd>SmpPasteUrl<CR>")
+    vim.keymap.set("n", "<leader>k2", "<cmd>SmpPasteWikiWord<CR>")
 ```
 
 Explains:

@@ -76,7 +76,7 @@ console.log('setIndicator', linenr, lineText);
   let thisAnchor=null;
   let foundLineNr = linenr;
   for(let i=linenr; i>=1; i--){
-      thisAnchor = document.querySelector('a[name="lucas_tkbp_' + i + '"]');
+      thisAnchor = document.querySelector(\`.lucas_tkbp_\${linenr}\`);
       if(thisAnchor !==null){
         foundLineNr = i;
         break;
@@ -98,7 +98,7 @@ console.log('scrollOnly', linenr, lineText);
   let thisAnchor=null;
   let foundLineNr = linenr;
   for(let i=linenr; i>=1; i--){
-      thisAnchor = document.querySelector('a[name="lucas_tkbp_' + i + '"]');
+      thisAnchor = document.querySelector(\`.scrollTo.lucas_tkbp_\${linenr}\`);
       if(thisAnchor !==null){
         foundLineNr = i;
         break;
@@ -197,16 +197,59 @@ let hl = function (code, lang) {
 	return hljs.highlight(code, { language }).value;
 };
 
+const imagelizedLang = ['plantuml', 'math'];
+
 // Override the 'code' function to handle block-level math
-renderer.code = function (code, infostring) {
+// renderer.code = function (code, infostring) {
+// 	if (infostring === 'math') {
+// 		return katex.renderToString(code, { displayMode: true, throwOnError: false });
+// 	}
+// 	return `<pre><code class="hljs language-${infostring}">${hl(code, infostring)}</code></pre>`;
+// };
+renderer.code = function (code, infostring, lineNumber) {
+	logToFile('>>>>Line number: ' + infostring + ' ' + lineNumber);
+	// return `<pre><code class="language-${infostring}">${code}</code></pre>`;
 	if (infostring === 'math') {
 		return katex.renderToString(code, { displayMode: true, throwOnError: false });
+	} else if (infostring === 'plantuml') {
+		const imageUrl = generatePlantUmlImageUrl(code);
+		return `<img src="${imageUrl}"/>`;
 	}
 	return `<pre><code class="hljs language-${infostring}">${hl(code, infostring)}</code></pre>`;
 };
 
+class CustomLexer extends marked.Lexer {
+	constructor(options) {
+		super(options);
+	}
+
+	lex(src) {
+		const tokens = [];
+		let lineNumber = 1;
+
+		while (src) {
+			const nextToken = super.token(src, true);
+			if (nextToken) {
+				src = src.slice(nextToken.raw.length);
+
+				if (nextToken.type === 'code') {
+					nextToken.lineNumber = lineNumber;
+				}
+				lineNumber += (nextToken.raw.match(/\n/g) || []).length;
+
+				tokens.push(nextToken);
+			} else {
+				src = '';
+			}
+		}
+
+		return tokens;
+	}
+}
+
 marked.setOptions({
 	renderer: renderer,
+	Lexer: CustomLexer,
 	highlight: function (code, lang) {
 		const hljs = require('highlight.js');
 		const language = hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -246,10 +289,8 @@ function generatePlantUmlImageUrl(plantUmlSource) {
 	const plantUmlServerUrl = 'http://www.plantuml.com/plantuml/img/';
 	return plantUmlServerUrl + encodedPlantUml;
 }
-const indicator = function (lnr) {
-	return `<a href="lucas_tkbp_${lnr + 1}" name="lucas_tkbp_${lnr + 1}"><span class="lucas_tkbp_${
-		lnr + 1
-	}"></span></a>`;
+const indicator = function (lnr, scroll = true) {
+	return `<span class="${scroll ? 'scrollto' : ''} lucas_tkbp_${lnr + 1}"></span>`;
 };
 
 const patchLine = (line, lnr, mydir, patchLineNr = true) => {
@@ -437,6 +478,12 @@ const init = async () => {
 					logToFile('css does not exist: ' + payload.cssfile);
 				}
 			}
+			const keys = ['snippets_folder'];
+			for (let i = 0; i < keys.length; i++) {
+				const key = keys[i];
+				smpConfig[key] = payload[key];
+			}
+			logToFile('config updated: ' + JSON.stringify(smpConfig, null, 2));
 		},
 	});
 	server.route({
@@ -465,6 +512,7 @@ const init = async () => {
 					patched.push(patchLine(lines[i], i, mydir, true));
 
 					if (x.match(/^\s*`/)) {
+						//a code block start
 						if (codeStart < 0) {
 							codeStart = i;
 							let match = x.match(/```(\w*)/);
@@ -478,12 +526,12 @@ const init = async () => {
 							for (let j = codeStart; j <= codeEnd; j++) {
 								patched[j] = pure[j];
 							}
-							if (codeLang === 'plantuml') {
-								let codeBody = patched.slice(codeStart + 1, codeEnd);
-								const plantUmlSource = codeBody.join('\n');
-								const imageUrl = generatePlantUmlImageUrl(plantUmlSource);
-								patched[codeStart] = `<img src=${imageUrl}/>${indicator(codeStart)}`;
-								patched.splice(codeStart + 1, codeEnd - codeStart);
+							if (imagelizedLang.indexOf(codeLang) >= 0) {
+								//for imagelized text, no auto scroll
+								patched[codeStart] =
+									'&nbsp;' + indicator(codeStart, true) + '\n' + patched[codeStart];
+
+								patched[codeEnd] += '\n&nbsp;' + indicator(codeStart + 1, false);
 							}
 							codeStart = -1;
 							codeEnd = -1;
@@ -492,6 +540,7 @@ const init = async () => {
 					}
 				}
 				let md_string = patched.join('\n');
+				logToFile(md_string);
 				logToFile(
 					'Reeived ... ' +
 						payload.lines.length +
