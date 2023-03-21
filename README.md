@@ -86,6 +86,9 @@ If you move cursor into a line within a code block, that line will also be highl
 
 ### Mermaid
 
+![image](https://user-images.githubusercontent.com/2124836/226700147-e3a05791-b257-41a5-bb9e-bb7b13dcf11b.png)
+
+
 ### References link
 
 For example, if you have following Markdown text,
