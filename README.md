@@ -80,6 +80,7 @@ If you move cursor into a line within a code block, that line will also be highl
 ![image](https://user-images.githubusercontent.com/2124836/226204621-2c3079b4-cf73-4da6-ad0e-be2b30efb819.png)
 
 ### Latex
+
 ![image](https://user-images.githubusercontent.com/2124836/226216829-805a95e4-9dfc-47ed-985f-9da6c24b0a91.png)
 
 ### References link
@@ -152,7 +153,7 @@ in another snippets.
 And, please make sure:
 
 1. Keep one and only {snippet} on single line, keep only one snippet on one line,
-2. **Must avoid have looped includes!!!**
+2. **Must avoid having looped includes!!!**
 3. If the "snippet.md" file does not exist, no expansion will happen and the  
    text will be kept in {snippet} form
 
@@ -167,6 +168,9 @@ could:
    call `:lua require('smp').expand_snippet()` to expand it.
 2. replace all snippets in current buffer  
    call `:lua require('smp').expand_all_snippets()` to expand it.
+
+Simple Markdown Preview does not provide default keymappings for these
+two functions, please define by yourself as needed.
 
 ## Requirements
 
