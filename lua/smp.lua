@@ -214,7 +214,7 @@ local function paste_from_register(register, pOrP)
 end
 
 M.do_expand_snippet = function(linenr, show_notfound_warning)
-    local ret = "not_match"
+    local ret
     local line = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
     local match = string.match(line, M.snippet_pattern)
     if match then
@@ -257,6 +257,7 @@ M.do_expand_snippet = function(linenr, show_notfound_warning)
     else
         ret = "not_match"
     end
+    return ret
 end
 
 M.expand_snippet = function()
@@ -275,7 +276,7 @@ M.expand_all_snippets = function()
         if next_line > 0 then
             M.log(next_line)
             vim.api.nvim_win_set_cursor(0, { next_line, 0 })
-            local ret = M.do_expand_snippet(next_line, false)
+            M.do_expand_snippet(next_line, false)
             start_from = next_line + 1
         else
             break
