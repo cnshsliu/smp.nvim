@@ -17,6 +17,8 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Latex](#latex)
   - [References link](#references-link)
   - [Custom Markdown CSS support](#custom-markdown-css)
+  - [Markdown Template Snippet](#template-snippet)
+    - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
   - On the roads:
     - Fully customizable
@@ -114,6 +116,57 @@ let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
 ```
 
 If the file does not exist, it will fallback to the default CSS.
+
+### Template Snippet
+
+You can include a snippet (template) in your Markdown file,
+each template is a file under your snippets folder.
+
+snippets folder is defined by `g:smp_snippets_folder`, for example:
+
+For neovim, init.lua:
+
+```vim
+let g:smp_snippets_folder = '~/.config/nvim/md_snippets'
+```
+
+For Lunarvim;
+
+```lua
+vim.g.smp_snippets_folder = "~/.config/nvim/md_snippets"
+
+```
+
+For exmaple, you may define snippets named "myHeader" and "myFooter",
+you should accordingly have "myHeader.md" and "myFooter.md" files in
+`smp_snippets_folder`, and then, you could include them in your
+Markdown files with `{myHeader}` or `{myFooter}`.
+
+{myHeader} will be replaced with the content of "myHeader.md" file,
+
+{myFooter} will be replaced with the content of "myFooter.md" file,
+
+Tempalte can be used in a cascaded way, that means, you can include snippets
+in another snippets.
+
+And, please make sure:
+
+1. Keep one and only {snippet} on single line, keep only one snippet on one line,
+2. **Must avoid have looped includes!!!**
+3. If the "snippet.md" file does not exist, no expansion will happen and the  
+   text will be kept in {snippet} form
+
+In browser previewing, snippets will be automatically displayed
+as their contents,
+however, if you want to expand them right within your Markdown
+file, that means, to repalce {snippets} with it's content, you
+could:
+
+1. replace one by one:  
+    While you are on a line of {snippet}
+   call `:lua require('smp').expand_snippet()` to expand it.
+2. replace all snippets in current buffer  
+   call `:lua require('smp').expand_all_snippets()` to expand it.
 
 ## Requirements
 

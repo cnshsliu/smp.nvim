@@ -12,6 +12,8 @@ local M = {}
 M.server_started = false
 local tmpdir
 
+M.snippet_pattern = "^%s*{(.-)}%s*$"
+
 if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
     tmpdir = os.getenv("TEMP")
 else
@@ -174,46 +176,111 @@ end
 
 local post_data_update = create_limited_function(do_post_data_update, 400)
 
-M.expand_snippet = function()
-    local linenr = vim.fn.line(".")
+M.get_matching_line_numbers = function(pattern)
+    local matching_lines = {}
+    local num_lines = vim.api.nvim_buf_line_count(0)
+
+    for i = 1, num_lines do
+        local line = vim.api.nvim_buf_get_lines(0, i - 1, i, false)[1]
+        if line:match(pattern) then
+            table.insert(matching_lines, i)
+        end
+    end
+
+    return matching_lines
+end
+
+M.get_next_matching_line = function(pattern, start_from)
+    local num_lines = vim.api.nvim_buf_line_count(0)
+
+    for i = start_from, num_lines do
+        local line = vim.api.nvim_buf_get_lines(0, i - 1, i, false)[1]
+        if line:match(pattern) then
+            return i
+        end
+    end
+
+    return -1
+end
+
+local function set_register(register, text)
+    vim.api.nvim_set_var("temp_text", text)
+    vim.api.nvim_command("let @" .. register .. " = g:temp_text")
+    vim.api.nvim_del_var("temp_text")
+end
+
+local function paste_from_register(register, pOrP)
+    vim.api.nvim_command('normal! "' .. register .. pOrP)
+end
+
+M.do_expand_snippet = function(linenr, show_notfound_warning)
+    local ret = "not_match"
     local line = vim.api.nvim_buf_get_lines(0, linenr - 1, linenr, false)[1]
-    local match = string.match(line, "%$%$(.-)%$%$")
+    local match = string.match(line, M.snippet_pattern)
     if match then
-        print("match=" .. vim.inspect(match))
         local snippet_name = string.gsub(match, "^%s*(.-)%s*$", "%1")
         local snippet_path = Path.new(vim.fn.expand(vim.g.smp_snippets_folder))
         local fullpath = snippet_path:joinpath(snippet_name .. ".md")
         local file = io.open(fullpath.filename, "r")
         if file then
-            M.log("Expand snippet " .. fullpath.filename)
             local contents = file:read("*all")
             file:close()
-            M.log("contents=" .. contents)
-            vim.fn.setreg("z", contents)
+            set_register("z", contents)
             local isLastLine = false
             if linenr == vim.api.nvim_buf_line_count(0) then
                 isLastLine = true
             end
             if isLastLine then
-                vim.fn.feedkeys("dd", "n")
-                vim.fn.feedkeys('"zp')
+                vim.api.nvim_command("normal! dd")
+                paste_from_register("z", "p")
             else
-                vim.fn.feedkeys("dd", "n")
-                vim.fn.feedkeys('"zP')
+                vim.api.nvim_command("normal! dd")
+                paste_from_register("z", "P")
             end
+            ret = "expanded"
         else
-            vim.api.nvim_buf_set_lines(
-                0,
-                linenr,
-                linenr,
-                true,
-                { "Snippet not found: " .. fullpath.filename }
-            )
-            vim.defer_fn(function()
-                vim.api.nvim_win_set_cursor(0, { linenr, 0 })
-                vim.fn.feedkeys("u")
-            end, 2000)
+            if show_notfound_warning then
+                vim.api.nvim_buf_set_lines(
+                    0,
+                    linenr,
+                    linenr,
+                    true,
+                    { "Snippet not found: " .. fullpath.filename }
+                )
+                vim.defer_fn(function()
+                    vim.api.nvim_win_set_cursor(0, { linenr, 0 })
+                    vim.api.nvim_command("normal! u")
+                end, 2000)
+            end
+            ret = "snippet_not_found"
         end
+    else
+        ret = "not_match"
+    end
+end
+
+M.expand_snippet = function()
+    local linenr = vim.fn.line(".")
+    M.do_expand_snippet(linenr, true)
+end
+
+M.expand_all_snippets = function()
+    local num_lines = vim.api.nvim_buf_line_count(0)
+
+    local start_from = 1
+
+    for _ = 1, num_lines do
+        local next_line =
+            M.get_next_matching_line(M.snippet_pattern, start_from)
+        if next_line > 0 then
+            M.log(next_line)
+            vim.api.nvim_win_set_cursor(0, { next_line, 0 })
+            local ret = M.do_expand_snippet(next_line, false)
+            start_from = next_line + 1
+        else
+            break
+        end
+        vim.cmd("sleep 100m")
     end
 end
 
@@ -271,8 +338,8 @@ M.start = function(openBrowserAfterStart)
             local bufnr = vim.api.nvim_win_get_buf(0)
             local lastlines_key = string.format("buf_%d", bufnr)
             lastlines[lastlines_key] = nil
-            do_post_data_update()
             do_post_smp_config()
+            do_post_data_update()
             -- open browser here
             local function open_browser()
                 M.log("Open browser now")

@@ -49,14 +49,6 @@ const getStylesheet = function () {
 	return stylesheet;
 };
 
-function generateUUIDv4() {
-	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-		const r = (Math.random() * 16) | 0;
-		const v = c === 'x' ? r : (r & 0x3) | 0x8;
-		return v.toString(16);
-	});
-}
-
 const getSmoothScrollScript = function (bufnr, lnr, thisline) {
 	thisline = thisline.replace(/`/g, '\\`');
 	return `
@@ -94,18 +86,22 @@ console.log('setIndicator', linenr, lineText);
 function scrollOnly(linenr, lineText){
 console.log('scrollOnly', linenr, lineText);
   linenr = linenr - 3;
-  if (linenr < 1) linenr = 1;
+  if (linenr < 1) linenr = 0;
   let thisAnchor=null;
   let foundLineNr = linenr;
-  for(let i=linenr; i>=1; i--){
-      thisAnchor = document.querySelector(\`.scrollTo.lucas_tkbp_\${linenr}\`);
+  for(let i=linenr; i>=0; i--){
+console.log("\tfinding ", i);
+      thisAnchor = document.querySelector(\`.scrollTo.lucas_tkbp_\${i}\`);
       if(thisAnchor !==null){
         foundLineNr = i;
         break;
       }
   }
   if(thisAnchor !== null){
+console.log("Found line", foundLineNr, "scrollIntoView", foundLineNr)
       try{thisAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });}catch(err){}
+  }else{
+console.log("not scroll for", linenr)
   }
 }
 
@@ -144,7 +140,7 @@ function fetchData() {
       .catch((error) => {
         // console.error("There was a problem with the fetch operation:", error);
         fetchFailed += 1;
-        if(fetchFailed > 10){
+        if(fetchFailed > 200){
           try{clearInterval(intervalId);}catch(err){}
         }
       });
@@ -156,6 +152,7 @@ intervalId = setInterval(fetchData, 300);
 
 const inputString = 'The file is [[example.txt]], and this is [[example2]]';
 const regex_wiki = /\[\[(.*?)\]\]/g;
+const regex_snippet = /^\s*{(.+)}\s*$/;
 const regex_link = /\[(.*)]\s*\((.+)\)/;
 
 let string_stores = {};
@@ -179,7 +176,6 @@ function logToFile(message) {
 }
 
 // Usage:
-logToFile('This is a log message.');
 const renderer = new marked.Renderer();
 
 // Override the 'codespan' function to handle inline math
@@ -207,7 +203,6 @@ const imagelizedLang = ['plantuml', 'math'];
 // 	return `<pre><code class="hljs language-${infostring}">${hl(code, infostring)}</code></pre>`;
 // };
 renderer.code = function (code, infostring, lineNumber) {
-	logToFile('>>>>Line number: ' + infostring + ' ' + lineNumber);
 	// return `<pre><code class="language-${infostring}">${code}</code></pre>`;
 	if (infostring === 'math') {
 		return katex.renderToString(code, { displayMode: true, throwOnError: false });
@@ -293,19 +288,57 @@ const indicator = function (lnr, scroll = true) {
 	return `<span class="${scroll ? 'scrollto' : ''} lucas_tkbp_${lnr + 1}"></span>`;
 };
 
-const patchLine = (line, lnr, mydir, patchLineNr = true) => {
-	//Reference , dont' touch
+const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
+	//Reference , don't touch
+	logToFile('patch: ' + line);
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
 		//Refen
-		return line;
+		patchLineNr = false;
 	} else if (line.match(/^\s*$/)) {
-		//Blank like, dont' touch
-		return line;
+		//Patch bank line
+		//Blank like, don't touch
+		patchLineNr = patchLineNr;
+	} else if (line.match(regex_snippet)) {
+		logToFile(`Found snippet: ${line}`);
+		let m = line.match(regex_snippet);
+		let snippetName = m[1].trim();
+		function parse_snippet_content(snippet, level = 0) {
+			//stop parse if level > 9
+			if (level > 9) return null;
+			if (!(smpConfig && smpConfig.snippets_folder)) {
+				logToFile('smpConfig.snippets_folder is not defined');
+				return null;
+			}
+			let fullPath = path.resolve(smpConfig.snippets_folder, snippet + '.md');
+			if (fs.existsSync(fullPath)) {
+				logToFile('found ' + fullPath);
+				let content = fs.readFileSync(fullPath, 'utf8');
+				let lines = content.split('\n');
+				let foundChildSnippet = false;
+				let retContentLines = [];
+				for (let i = 0; i < lines.length; i++) {
+					if (lines[i].match(regex_snippet)) {
+						foundChildSnippet = true;
+						let m = lines[i].match(regex_snippet);
+						let childSnippetName = m[1].trim();
+						retContentLines.push(parse_snippet_content(childSnippetName, level + 1) || lines[i]);
+					} else {
+						retContentLines.push(lines[i]);
+					}
+				}
+				return retContentLines.join('\n') + '\n';
+			} else {
+				logToFile('not found ' + fullPath);
+				return null;
+			}
+		}
+		if (snippetName) line = parse_snippet_content(snippetName, 0) || line;
 	} else if (line.match(/\[\[.+]]/)) {
+		//Patch WIKI link
 		//Wiki link, a bit more complicated
 		//I use this syntax heavily in Telekasten
 		let outputString = line.replace(regex_wiki, (match, p1) => {
-			let fullPath = path.resolve(mydir, p1.match(/^.+\.(.+)$/) ? p1 : p1 + '.md');
+			let fullPath = path.resolve(dir_of_current_md, p1.match(/^.+\.(.+)$/) ? p1 : p1 + '.md');
 			// const fullPath = path.resolve(p1);
 			// const fileName = path.basename(p1);
 			const fileExists = fs.existsSync(fullPath);
@@ -326,11 +359,16 @@ const patchLine = (line, lnr, mydir, patchLineNr = true) => {
 		});
 		line = outputString;
 	} else if (line.match(regex_link)) {
+		//Patch local MD link
+		//如果是 [name](link) 方式
 		let outputString = line.replace(regex_link, (match, p1, p2) => {
 			if (isValidUrl(p2)) {
+				//if link is valid url, return normal Markdown link
 				return `[${p1}](${p2})`;
 			} else {
-				let fn = path.resolve(mydir, p2);
+				//if a wiki style link to a local file
+				//convert it to SMP_LINK handler
+				let fn = path.resolve(dir_of_current_md, p2);
 				return `[${p1}](/SMP_LINK/${Buffer.from(fn).toString('base64')})`;
 			}
 		});
@@ -377,14 +415,14 @@ const init = async () => {
 			let md_cache = string_stores['bufnr_' + request.params.bufnr];
 			if (md_cache) {
 				const data = marked.parse(md_cache.string);
-
-				return h.response(
+				const resp_html =
 					getStylesheet() +
-						'<article class="markdown-body">' +
-						data +
-						'</article>' +
-						getSmoothScrollScript(request.params.bufnr, md_cache.pos[0], md_cache.thisline.trim()),
-				);
+					'<article class="markdown-body">' +
+					indicator(-1) +
+					data +
+					'</article>' +
+					getSmoothScrollScript(request.params.bufnr, md_cache.pos[0], md_cache.thisline.trim());
+				return h.response(resp_html);
 			} else {
 				return h.response('Not found');
 			}
@@ -449,9 +487,9 @@ const init = async () => {
 			const fileExists = fs.existsSync(fn);
 			if (fileExists) {
 				logToFile('Zettel file sent:' + fn);
-				let mydir = path.dirname(fn);
+				let dir_of_current_md = path.dirname(fn);
 				let md = fs.readFileSync(fn, 'utf8');
-				md = patchLine(md, 0, mydir, false);
+				md = patchLine(md, 0, dir_of_current_md, false);
 				const data = marked.parse(md);
 
 				return h.response(
@@ -484,6 +522,7 @@ const init = async () => {
 				smpConfig[key] = payload[key];
 			}
 			logToFile('config updated: ' + JSON.stringify(smpConfig, null, 2));
+			return h.response('config updated');
 		},
 	});
 	server.route({
@@ -502,14 +541,14 @@ const init = async () => {
 				logToFile('Filename is undefined, bypass update ' + JSON.stringify(payload));
 				return h.response('Filename is undefined, bypass update');
 			}
-			let mydir = path.dirname(fn);
+			let dir_of_current_md = path.dirname(fn);
 			let codeLang = '';
 			if (lines.length > 0 && lines[0] !== 'NO_CHANGE') {
 				//update content
 				for (let i = 0; i < lines.length; i++) {
 					let x = lines[i];
 					pure.push(x);
-					patched.push(patchLine(lines[i], i, mydir, true));
+					patched.push(patchLine(lines[i], i, dir_of_current_md, true));
 
 					if (x.match(/^\s*`/)) {
 						//a code block start
@@ -528,9 +567,19 @@ const init = async () => {
 							}
 							if (imagelizedLang.indexOf(codeLang) >= 0) {
 								//for imagelized text, no auto scroll
+								//Befote the code start
+								//insert a indicator after a new line mark
 								patched[codeStart] =
 									'&nbsp;' + indicator(codeStart, true) + '\n' + patched[codeStart];
 
+								//For those markdown lines which will be converted
+								//into a picture, we insert patch, only used for hightlight
+								//without scroll to it,
+								//Why do we need no-scroll-to location? because if you are
+								//editing a imagelizable mardown section which have many lines
+								//or when you move cursor whithin this area
+								//the browser will jump to this location
+								//make your editting exprience unstable.
 								patched[codeEnd] += '\n&nbsp;' + indicator(codeStart + 1, false);
 							}
 							codeStart = -1;
@@ -540,15 +589,14 @@ const init = async () => {
 					}
 				}
 				let md_string = patched.join('\n');
-				logToFile(md_string);
-				logToFile(
-					'Reeived ... ' +
-						payload.lines.length +
-						' lines, pos:' +
-						payload.pos +
-						', fn:' +
-						payload.fn,
-				);
+				// logToFile(
+				// 	'Reeived ... ' +
+				// 		payload.lines.length +
+				// 		' lines, pos:' +
+				// 		payload.pos +
+				// 		', fn:' +
+				// 		payload.fn,
+				// );
 				// fs.writeFile('/Users/lucas/tmp/buf1.md', md_string, 'utf8', (err) => {
 				// 	if (err) {
 				// 		console.error('Error writing file:', err);
