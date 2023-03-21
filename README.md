@@ -88,7 +88,6 @@ If you move cursor into a line within a code block, that line will also be highl
 
 ![image](https://user-images.githubusercontent.com/2124836/226700147-e3a05791-b257-41a5-bb9e-bb7b13dcf11b.png)
 
-
 ### References link
 
 For example, if you have following Markdown text,
@@ -192,7 +191,7 @@ Packer (packer.nvim)
 
 ```lua
 use {
-  'myusername/example',
+  'cnshsliu/smp.nvim',
   run="cd server && npm install"
 }
 ```
@@ -285,3 +284,4 @@ At this moment, the PR of show_book is waiting for accepting yet,
 you may use my repo to try it's power,
 use `cnshsliu/telekasten.nvim` in your init.lua and give it a try,
 I am sure you will love it.
+
