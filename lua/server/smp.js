@@ -147,6 +147,10 @@ function fetchData() {
 }
 intervalId = setInterval(fetchData, 300);
 </script>
+<script type="module">
+	import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+	mermaid.initialize({ startOnLoad: true });
+</script>
   `;
 };
 
@@ -209,6 +213,8 @@ renderer.code = function (code, infostring, lineNumber) {
 	} else if (infostring === 'plantuml') {
 		const imageUrl = generatePlantUmlImageUrl(code);
 		return `<img src="${imageUrl}"/>`;
+	} else if (infostring === 'mermaid') {
+		return `<span class="mermaid">${code}</span>`;
 	}
 	return `<pre><code class="hljs language-${infostring}">${hl(code, infostring)}</code></pre>`;
 };

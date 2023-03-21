@@ -15,6 +15,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Highlight current line in code blocks](#codes-line-highlight)
   - [PlantUML](#plantuml)
   - [Latex](#latex)
+  - [Mermaid](#mermaid)
   - [References link](#references-link)
   - [Custom Markdown CSS support](#custom-markdown-css)
   - [Markdown Template Snippet](#template-snippet)
@@ -82,6 +83,8 @@ If you move cursor into a line within a code block, that line will also be highl
 ### Latex
 
 ![image](https://user-images.githubusercontent.com/2124836/226216829-805a95e4-9dfc-47ed-985f-9da6c24b0a91.png)
+
+### Mermaid
 
 ### References link
 
