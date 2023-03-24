@@ -50,8 +50,9 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Markdown Template Snippet](#template-snippet)
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
-- [Markdown Outliner (the book)](#markdown-book)
+- [Outliner (the book)](#markdown-book)
   - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
+- [Searcher](#search-by-tag)
   - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
   - [Search by text incrementally](#search-by-text) `:SmpSearchText`
   - [Saved search](#saved-search)
