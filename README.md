@@ -10,9 +10,9 @@ Yes, we **[preview](#features) and [outline](#markdown-book)** Markdown in one p
 ```lua
 use {
   'cnshsliu/smp.nvim',
-  run="cd server && npm install",
+  run="cd server && npm install",   -- yes, we should have node & npm installed.
   requires = {
-	"nvim-telescope/telescope.nvim",
+	"nvim-telescope/telescope.nvim", 
 	"MunifTanjim/nui.nvim",
   },
 
