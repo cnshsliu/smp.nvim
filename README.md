@@ -172,6 +172,7 @@ two functions, please define by yourself as needed.
 
 Outline markdown structures in a standalone buffer, list out all tags,
 backlinks, and forward links. todos, and headers
+<img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
 
 Press on each item will bring you to there.
 
@@ -184,6 +185,8 @@ press '?' in the book buffer to bring up help
 ### Search by tag
 
 Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
+<img width="1196" alt="image" src="https://user-images.githubusercontent.com/2124836/227624370-fef7b8e1-f64d-4cd7-8f6b-59c2d49bb668.png">
+
 
 `:mysearch -tagA tagB tagC`
 
