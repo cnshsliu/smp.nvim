@@ -1,4 +1,4 @@
-# Simple Markdown Previewer, Outliner and Incrementally Searcher
+# Simple Markdown Previewer, Outliner and Incremental Searcher
 
 A lightweight, easy-to-use Markdown [preview](#features) and [outline](#markdown-book) and [incrementally search](#search-by-tag) plugin for NeoVim, which live updates
 and feature-rich, to fully unleash your Markdown imagination.
