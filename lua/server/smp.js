@@ -5,7 +5,6 @@ const katex = require('katex');
 const path = require('path');
 const Hapi = require('@hapi/hapi');
 const fs = require('fs');
-const BookUtils = require('./bookutils');
 const plantumlEncoder = require('plantuml-encoder');
 
 const defaultMarkDownCss = '/styles/github-markdown.css';
@@ -13,12 +12,13 @@ const smpConfig = {
 	css: defaultMarkDownCss,
 };
 
+//katex version: https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css
 const getStylesheet = function () {
 	const stylesheet = `
   <link rel="stylesheet" href="${smpConfig.css}" type="text/css">
 	<link rel="stylesheet" href="/styles/highlight-github.css" type="text/css">
 	<link rel="stylesheet" href="/styles/smp.css" type="text/css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css">
+  <link rel="stylesheet" href="/styles/katex.min.css">
 
 	
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,7 +52,9 @@ const getStylesheet = function () {
 const getSmoothScrollScript = function (bufnr, lnr, thisline) {
 	thisline = thisline.replace(/`/g, '\\`');
 	return `
-<script type="text/javascript">
+  <script type="module">
+import * as sxMxPx_x_M1e2r0mxaidJs from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+window.sxMxPx_x_M1e2r0mxaidJs = sxMxPx_x_M1e2r0mxaidJs.default;
 let thisTs = 0;
 let lastTs = -1;
 function removeExistingBalls(){
@@ -64,7 +66,6 @@ function removeExistingBalls(){
 }
 
 function setIndicator(linenr, lineText){
-console.log('setIndicator', linenr, lineText);
   let thisAnchor=null;
   let foundLineNr = linenr;
   for(let i=linenr; i>=1; i--){
@@ -84,13 +85,11 @@ console.log('setIndicator', linenr, lineText);
 }
 
 function scrollOnly(linenr, lineText){
-console.log('scrollOnly', linenr, lineText);
   linenr = linenr - 3;
   if (linenr < 1) linenr = 0;
   let thisAnchor=null;
   let foundLineNr = linenr;
   for(let i=linenr; i>=0; i--){
-console.log("\tfinding ", i);
       thisAnchor = document.querySelector(\`.scrollTo.lucas_tkbp_\${i}\`);
       if(thisAnchor !==null){
         foundLineNr = i;
@@ -98,15 +97,11 @@ console.log("\tfinding ", i);
       }
   }
   if(thisAnchor !== null){
-console.log("Found line", foundLineNr, "scrollIntoView", foundLineNr)
       try{thisAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });}catch(err){}
-  }else{
-console.log("not scroll for", linenr)
   }
 }
 
 function scrollToLine(linenr, lineText){
-console.log('scrollToLine', linenr, lineText);
   setIndicator(linenr, lineText);
   scrollOnly(linenr, lineText);
 }
@@ -136,6 +131,17 @@ function fetchData() {
           default:
         }
         if(data.ts) {thisTs = data.ts; }
+	const mermaidElement = document.querySelector('.mermaid');
+	if(mermaidElement){
+		window.sxMxPx_x_M1e2r0mxaidJs.initialize({startOnLoad:false});
+		//Dont' use init()
+		//https://mermaid.js.org/config/usage.html#calling-mermaid-init-deprecated
+		window.sxMxPx_x_M1e2r0mxaidJs.run({
+			querySelector: '.mermaid',
+			suppressErrors: true,
+		}).then(()=>{
+		})
+	}
       })
       .catch((error) => {
         // console.error("There was a problem with the fetch operation:", error);
@@ -145,11 +151,7 @@ function fetchData() {
         }
       });
 }
-intervalId = setInterval(fetchData, 300);
-</script>
-<script type="module">
-	import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-	mermaid.initialize({ startOnLoad: true });
+intervalId = setInterval(fetchData, 500);
 </script>
   `;
 };
@@ -198,6 +200,18 @@ let hl = function (code, lang) {
 };
 
 const imagelizedLang = ['plantuml', 'math'];
+
+function renderMermaid(mermaidCode, lineNr) {
+	let svg = '';
+
+	// Render the Mermaid code to an SVG image using a callback function
+	mermaid.render('diagram_' + lineNr, mermaidCode, (result) => {
+		svg = result;
+	});
+
+	// Return the SVG image as a string
+	return svg;
+}
 
 // Override the 'code' function to handle block-level math
 // renderer.code = function (code, infostring) {
@@ -370,6 +384,8 @@ const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 		let outputString = line.replace(regex_link, (match, p1, p2) => {
 			if (isValidUrl(p2)) {
 				//if link is valid url, return normal Markdown link
+				return `[${p1}](${p2})`;
+			} else if (p2.startsWith('#')) {
 				return `[${p1}](${p2})`;
 			} else {
 				//if a wiki style link to a local file

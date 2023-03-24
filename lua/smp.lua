@@ -1,10 +1,8 @@
 local Json = require("json")
 local Path = require("plenary.path")
+local bookutils = require("book.bookutils")
 
 local vim = vim
-local http = require("socket.http")
--- local https = require("ssl.https")
-local ltn12 = require("ltn12")
 local body = {}
 local lastlines = { "unset" }
 
@@ -20,6 +18,21 @@ else
     tmpdir = "/tmp"
 end
 local logFile = vim.fn.fnamemodify(tmpdir, ":p") .. "smp_client.log"
+local _home = vim.fn.expand("~/zettelkasten")
+
+local function defaultConfig(home)
+    if home == nil then
+        home = _home
+    end
+
+    local cfg = {
+        home = home,
+        extension = ".md",
+        templates = home .. "/" .. "templates",
+        book_use_emoji = true,
+    }
+    M.Cfg = cfg
+end
 
 M.open_url = function(url)
     if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
@@ -45,6 +58,57 @@ end
 M.clear_log = function()
     local file_to_clear = assert(io.open(logFile, "w"))
     file_to_clear:close()
+end
+
+M.post2 = function(host, port, endpoint, data)
+    local url = string.format("http://%s:%d/%s", host, port, endpoint)
+    local suffix = ".json"
+    local outfile = tmpdir .. "/tempfile" .. suffix
+
+    local file, err = io.open(outfile, "w")
+    if not file then
+        print("Error opening file: " .. err)
+        return
+    end
+    file:write(Json.stringify(data))
+    file:close()
+
+    -- Use curl to make the POST request with the payload file
+    local command = string.format(
+        "curl -s -X POST -H 'Content-Type: application/json' -d '@%s' %s >/dev/null 2>&1",
+        outfile,
+        url
+    )
+    os.execute(command)
+    -- local success, status, code = os.execute(command)
+    -- if not success then
+    --     print("Error executing curl: " .. status)
+    --     -- elseif code ~= 0 and code ~= "" then
+    --     --     print(
+    --     --         "Curl exited with non-zero status code: "
+    --     --             .. vim.inspect(code or "")
+    --     --             .. "command: "
+    --     --             .. command
+    --     --     )
+    -- end
+
+    -- local lua_cmd = string.format(
+    --     "lua -e \"local json=require('json'); io.write(%s)\"",
+    --     Json.stringify(data)
+    -- )
+    -- local curl_cmd = string.format(
+    --     "curl -X POST -H 'Content-Type: application/json' -d @- %s",
+    --     url
+    -- )
+    -- local pipe = io.popen(lua_cmd .. " | " .. curl_cmd, "r")
+    -- local output = pipe:read("*all")
+    -- pipe:close()
+    -- local _, _, code = output:find("HTTP/%d%.%d (%d+)")
+    -- local _, _, status = output:find("HTTP/%d%.%d %d+ ([^\r\n]+)")
+    -- local _, _, body = output:find("\r\n\r\n(.*)")
+    -- if code ~= 200 then
+    --     print("Post ERROR", code, res_body, status, vim.inspect(headers))
+    -- end
 end
 
 M.post = function(host, port, endpoint, payload)
@@ -107,8 +171,8 @@ end
 
 local do_post_smp_config = function()
     local config = {
-        cssfile = vim.g.smp_cssfile,
-        snippets_folder = vim.g.smp_snippets_folder,
+        cssfile = M.Cfg.smp_cssfile,
+        snippets_folder = M.Cfg.smp_snippets_folder,
     }
     if config.cssfile then
         config.cssfile = vim.fn.expand(config.cssfile)
@@ -116,7 +180,7 @@ local do_post_smp_config = function()
     if config.snippets_folder then
         config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
-    M.post("127.0.0.1", 3030, "config", config)
+    M.post2("127.0.0.1", 3030, "config", config)
 end
 
 local do_post_data_update = function()
@@ -169,7 +233,7 @@ local do_post_data_update = function()
     }
     -- print(string.format("%s...%s...%d", "Post", vim.inspect(pos), bufnr))
     if payload.fn then
-        M.post("127.0.0.1", 3030, "update", payload)
+        M.post2("127.0.0.1", 3030, "update", payload)
     end
     -- M.log("\tPosted")
 end
@@ -219,7 +283,7 @@ M.do_expand_snippet = function(linenr, show_notfound_warning)
     local match = string.match(line, M.snippet_pattern)
     if match then
         local snippet_name = string.gsub(match, "^%s*(.-)%s*$", "%1")
-        local snippet_path = Path.new(vim.fn.expand(vim.g.smp_snippets_folder))
+        local snippet_path = Path.new(vim.fn.expand(M.Cfg.smp_snippets_folder))
         local fullpath = snippet_path:joinpath(snippet_name .. ".md")
         local file = io.open(fullpath.filename, "r")
         if file then
@@ -360,12 +424,12 @@ M.start = function(openBrowserAfterStart)
 end
 
 M.cleanup = function()
-    M.post("127.0.0.1", 3030, "stop", {})
+    M.post2("127.0.0.1", 3030, "stop", {})
     M.server_started = false
 end
 
 M.stop = function()
-    M.post("127.0.0.1", 3030, "stop", {})
+    M.post2("127.0.0.1", 3030, "stop", {})
     M.server_started = false
     pcall(vim.api.nvim_del_augroup_by_name, "smp_group")
 end
@@ -507,7 +571,34 @@ M.paste_wiki_word = function()
     local delay_ms = 200
     vim.defer_fn(delayed_operation, delay_ms)
 end
+
+M.book = function()
+    bookutils.BookShow()
+end
+
+M.search_text = function()
+    bookutils.BookSearchText()
+end
+
+M.search_tag = function()
+    bookutils.BookSearchTag()
+end
+
 M.clear_log()
 M.log("\n")
+
+local function Setup(cfg)
+    cfg = cfg or {}
+    bookutils.setup(cfg)
+    defaultConfig(cfg.home)
+    for k, v in pairs(cfg) do
+        M.Cfg[k] = v
+    end
+end
+
+local function _setup(cfg)
+    Setup(cfg)
+end
+M.setup = _setup
 
 return M

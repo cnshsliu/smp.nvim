@@ -26,6 +26,7 @@
 		"@hapi/inert": "^7.1.0",
 		"highlight.js": "^11.7.0",
 		"marked": "^4.0.12",
+		"mermaid": "^10.0.2",
 		"plantuml-encoder": "^1.4.0"
 	},
 	"private": true,

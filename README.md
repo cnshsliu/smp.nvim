@@ -21,17 +21,20 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Markdown Template Snippet](#template-snippet)
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
+  - [Markdown Books](#markdown-books)
+    - [Show Book in a standalone buffer](#show-book) `:SmpBook`
+    - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
+    - [Search by text incrementally](#search-by-text) `:SmpSearchText`
+    - [Saved search](#saved-search)
   - On the roads:
     - Fully customizable
-    - Configurable header and footer (with hotkey to change among several sets  
-      of header and footer while editting in NeoVim)
     - One key (command) in NeoVim to start print in browser, there, you could  
       choose to send to a physical printer or print to PDF.
     - and more... (fully unleash your imagination, you ask, I implement )
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Installation](#installation)
-  - [Usage](#usage)
+  - [Preview Markdown](#preview-markdwon)
   - [Key mappings](#mappings)
 - [Need your helps](#ask-for-your-help)
 - [Others](#others)
@@ -106,19 +109,13 @@ anything you like and see how it gets converted. Live. No more waiting around.
 
 ### Custom Markdown CSS
 
-You may use your own markdown CSS file by define a vim global variable
-named `smp_cssfile`, for example:
-
-For LunarVim, use:
+You may use your own markdown CSS file by define smp_markdown_css in setup()
+, for example:
 
 ```lua
-vim.g.smp_cssfile = '~/.config/nvim/my_markdown.css'
-```
-
-Normal NeoVim:
-
-```vim
-let g:smp_cssfile = '~/.config/nvim/my_markdown.css'
+require("smp").setup({
+	smp_markdown_css = "~/.config/smp/my_markdown.css",
+})
 ```
 
 If the file does not exist, it will fallback to the default CSS.
@@ -128,18 +125,12 @@ If the file does not exist, it will fallback to the default CSS.
 You can include a snippet (template) in your Markdown file,
 each template is a file under your snippets folder.
 
-snippets folder is defined by `g:smp_snippets_folder`, for example:
-
-For neovim, init.lua:
-
-```vim
-let g:smp_snippets_folder = '~/.config/nvim/md_snippets'
-```
-
-For Lunarvim;
+snippets folder is defined by `smp_snippets_folder`, for example:
 
 ```lua
-vim.g.smp_snippets_folder = "~/.config/nvim/md_snippets"
+require("smp").setup({
+	smp_snippets_folder = "~/.config/smp/snippets",
+})
 
 ```
 
@@ -199,7 +190,19 @@ use {
 I don't use other package manager than Packer, if you are familiar with them,
 kindly update this README.
 
-### Usage
+### Setup
+
+```lua
+require("smp").setup({
+	-- home = require("telekasten").Cfg.home or vim.fn.expand("~/zettelkasten"),
+	home = vim.fn.expand("~/zettelkasten"),
+	templates = home .. "/" .. "templates",
+	smp_markdown_css = "~/.config/smp/my_markdown.css",
+	smp_snippets_folder = "~/.config/smp/snippets",
+})
+```
+
+### Preview Markdown
 
 Press
 
@@ -284,4 +287,3 @@ At this moment, the PR of show_book is waiting for accepting yet,
 you may use my repo to try it's power,
 use `cnshsliu/telekasten.nvim` in your init.lua and give it a try,
 I am sure you will love it.
-
