@@ -21,8 +21,8 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Markdown Template Snippet](#template-snippet)
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
-  - [Markdown Books](#markdown-books)
-    - [Show Book in a standalone buffer](#show-book) `:SmpBook`
+  - [Markdown Book](#markdown-book)
+    - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
     - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
     - [Search by text incrementally](#search-by-text) `:SmpSearchText`
     - [Saved search](#saved-search)
@@ -34,7 +34,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Installation](#installation)
-  - [Preview Markdown](#preview-markdwon)
+  - [Preview Markdown](#preview-markdown)
   - [Key mappings](#mappings)
 - [Need your helps](#ask-for-your-help)
 - [Others](#others)
@@ -223,6 +223,35 @@ as well. you don't have to close it manually.
 
 The background service is written with Node.js, that's why Node.js is
 in the dependency list of this plugin.
+
+### Markdown Book
+
+Outline markdown structures in a standalone buffer, list out all tags,
+backlinks, and forward links. todos, and headers
+
+Press on each item will bring you to there.
+
+While you are on a markdown header entry, use '>>' to demote it, use '<<' to promote it.
+
+press '?' in the book buffer to bring up help
+
+`:SmpBook`
+
+### Search by tag
+
+Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
+
+`:mysearch -tagA tagB tagC`
+
+means you'd like to search all markdown fiels which have #tagB, #tagC, but not tagA. and save it as "mysearch". The order of these element does not matter.
+
+### Search by text
+
+Search by multiple text delimitered with space or ',',
+
+`textA textB :mytextsearch -textC`
+
+means you'd like to search all markdown fiels which contain textA, textB, but not textC. and save it as "mytextsearch". The order of these element does not matter.
 
 ### Mappings
 
