@@ -336,14 +336,3 @@ previewer, so I wrote this one,
 I am with a Macbook Pro, and this plugin is tested on MacOS only,
 If you find any bugs on other OSs, kindly raise an issue,
 I will fix it ASAP. thanks a lot.
-
-I also contribute to Telekasten development, provides `:Telekasten show_book`
-command to it, "show_book" will display the outline of our Telekasten notes
-on the right side of NeoVim window, includes tags, backlinks, links, todos,
-headers etc. Telekasten show_book also enable you to search by tags or text
-incrementally, and you can save your query condition for later use.
-
-At this moment, the PR of show_book is waiting for accepting yet,
-you may use my repo to try it's power,
-use `cnshsliu/telekasten.nvim` in your init.lua and give it a try,
-I am sure you will love it.
