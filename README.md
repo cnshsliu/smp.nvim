@@ -168,6 +168,35 @@ could:
 Simple Markdown Preview does not provide default keymappings for these
 two functions, please define by yourself as needed.
 
+### Markdown Book
+
+Outline markdown structures in a standalone buffer, list out all tags,
+backlinks, and forward links. todos, and headers
+
+Press on each item will bring you to there.
+
+While you are on a markdown header entry, use '>>' to demote it, use '<<' to promote it.
+
+press '?' in the book buffer to bring up help
+
+`:SmpBook`
+
+### Search by tag
+
+Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
+
+`:mysearch -tagA tagB tagC`
+
+means you'd like to search all markdown fiels which have #tagB, #tagC, but not tagA. and save it as "mysearch". The order of these element does not matter.
+
+### Search by text
+
+Search by multiple text delimitered with space or ',',
+
+`textA textB :mytextsearch -textC`
+
+means you'd like to search all markdown fiels which contain textA, textB, but not textC. and save it as "mytextsearch". The order of these element does not matter.
+
 ## Requirements
 
 1. NeoVim v0.6.0 or higher.
@@ -223,35 +252,6 @@ as well. you don't have to close it manually.
 
 The background service is written with Node.js, that's why Node.js is
 in the dependency list of this plugin.
-
-### Markdown Book
-
-Outline markdown structures in a standalone buffer, list out all tags,
-backlinks, and forward links. todos, and headers
-
-Press on each item will bring you to there.
-
-While you are on a markdown header entry, use '>>' to demote it, use '<<' to promote it.
-
-press '?' in the book buffer to bring up help
-
-`:SmpBook`
-
-### Search by tag
-
-Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
-
-`:mysearch -tagA tagB tagC`
-
-means you'd like to search all markdown fiels which have #tagB, #tagC, but not tagA. and save it as "mysearch". The order of these element does not matter.
-
-### Search by text
-
-Search by multiple text delimitered with space or ',',
-
-`textA textB :mytextsearch -textC`
-
-means you'd like to search all markdown fiels which contain textA, textB, but not textC. and save it as "mytextsearch". The order of these element does not matter.
 
 ### Mappings
 
