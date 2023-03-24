@@ -36,7 +36,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 
 ## Contents
 
-- [Features](#features)
+- [Previewer](#features)
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -50,12 +50,12 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Markdown Template Snippet](#template-snippet)
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
-  - [Markdown Outliner (the book)](#markdown-book)
-    - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
-    - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
-    - [Search by text incrementally](#search-by-text) `:SmpSearchText`
-    - [Saved search](#saved-search)
-  - On the roads:
+- [Markdown Outliner (the book)](#markdown-book)
+  - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
+  - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
+  - [Search by text incrementally](#search-by-text) `:SmpSearchText`
+  - [Saved search](#saved-search)
+- On the roads:
     - Fully customizable
     - One key (command) in NeoVim to start print in browser, there, you could  
       choose to send to a physical printer or print to PDF.
