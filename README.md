@@ -12,17 +12,23 @@ use {
   'cnshsliu/smp.nvim',
   run="cd server && npm install",   -- yes, we should have node & npm installed.
   requires = {
-	"nvim-telescope/telescope.nvim", 
-	"MunifTanjim/nui.nvim",
+    "nvim-telescope/telescope.nvim",
+    "MunifTanjim/nui.nvim",
   },
 
 }
 
 require("smp").setup({
-	home = vim.fn.expand("~/zettelkasten"),   --where are your MDs
-	templates = home .. "/" .. "templates",   -- for Telekasten user, don't use Telekasten? keep this line, no harm
-	smp_markdown_css = "~/.config/smp/my_markdown.css",  -- your custom markdown css
-	smp_snippets_folder = "~/.config/smp/snippets",  -- your markdown snippets
+    --where are your MDs
+    home = vim.fn.expand("~/zettelkasten"),
+    -- for Telekasten user, don't use Telekasten? keep this line, no harm
+    templates = home .. "/" .. "templates",
+    -- your custom markdown css, if not defined or not exist,
+    -- will use the default css
+    smp_markdown_css = "~/.config/smp/my_markdown.css",
+    -- your markdown snippets, if not defined or not exist,
+    -- snippets like {snippet_1} will keep it's as-is form.
+    smp_snippets_folder = "~/.config/smp/snippets",
 })
 ```
 
@@ -209,7 +215,6 @@ press '?' in the book buffer to bring up help
 
 Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
 <img width="1196" alt="image" src="https://user-images.githubusercontent.com/2124836/227624370-fef7b8e1-f64d-4cd7-8f6b-59c2d49bb668.png">
-
 
 `:mysearch -tagA tagB tagC`
 
