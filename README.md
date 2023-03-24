@@ -3,7 +3,7 @@
 A lightweight, easy-to-use Markdown [preview](#features) and [outline](#markdown-book) and [incrementally search](#search-by-tag) plugin for NeoVim, which live updates
 and feature-rich, to fully unleash your Markdown imagination.
 
-Yes, we [preview](#features), [outline](#markdown-book) and [incrementally search](#search-by-tag) Markdown in one plugin: "cnshsliu/smp.nvim", by Markdown lover for Markdown lover.
+Yes, we [preview](#features), [outline](#markdown-book) and [incrementally search](#search-by-tag) Markdown in one plugin: "cnshsliu/smp.nvim", by Markdown lover for Markdown lover. If you love this plugin also, pin me a star.
 
 ## Quick start with Packer
 
