@@ -202,6 +202,9 @@ two functions, please define by yourself as needed.
 
 Outline markdown structures in a standalone buffer, list out all tags,
 backlinks, and forward links. todos, and headers
+
+`:SmpBook`
+
 <img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
 
 Press on each item will bring you to there.
@@ -209,8 +212,9 @@ Press on each item will bring you to there.
 While you are on a markdown header entry, use '>>' to demote it, use '<<' to promote it.
 
 press '?' in the book buffer to bring up help
+<img width="1400" alt="image" src="https://user-images.githubusercontent.com/2124836/227632690-dd8d9fd1-bd10-405c-8af5-390d57d311dd.png">
 
-`:SmpBook`
+
 
 ### Search by tag
 
