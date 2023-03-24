@@ -1,7 +1,30 @@
 # Simple Markdown Preview
 
-A lightweight, easy-to-use Markdown preview plugin for NeoVim, which live updates
+A lightweight, easy-to-use Markdown [preview](#features) and [outline](#markdown-book) plugin for NeoVim, which live updates
 and feature-rich, to fully unleash your Markdown imagination.
+
+Yes, we **[preview](#features) and [outline](#markdown-book)** Markdown in one plugin: cnshsliu/smp.nvim, by Markdown lover for Markdown lover.
+
+## Quick start with Packer
+
+```lua
+use {
+  'cnshsliu/smp.nvim',
+  run="cd server && npm install",
+  requires = {
+	"nvim-telescope/telescope.nvim",
+	"MunifTanjim/nui.nvim",
+  },
+
+}
+
+require("smp").setup({
+	home = vim.fn.expand("~/zettelkasten"),   --where are your MDs
+	templates = home .. "/" .. "templates",   -- for Telekasten user, don't use Telekasten? keep this line, no harm
+	smp_markdown_css = "~/.config/smp/my_markdown.css",  -- your custom markdown css
+	smp_snippets_folder = "~/.config/smp/snippets",  -- your markdown snippets
+})
+```
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
