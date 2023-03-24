@@ -3,7 +3,6 @@ local Path = require("plenary.path")
 local bookutils = require("book.bookutils")
 
 local vim = vim
-local body = {}
 local lastlines = { "unset" }
 
 local M = {}
@@ -109,24 +108,6 @@ M.post2 = function(host, port, endpoint, data)
     -- if code ~= 200 then
     --     print("Post ERROR", code, res_body, status, vim.inspect(headers))
     -- end
-end
-
-M.post = function(host, port, endpoint, payload)
-    -- local json_data = '{"key1": "value1", "key2": "value2"}'
-    local json_data = Json.stringify(payload)
-    local res_body, code, headers, status = http.request({
-        method = "POST",
-        url = string.format("http://%s:%d/%s", host, port, endpoint),
-        source = ltn12.source.string(json_data),
-        headers = {
-            ["content-type"] = "application/json",
-            ["content-length"] = #json_data,
-        },
-        sink = ltn12.sink.table(body),
-    })
-    if code ~= 200 then
-        print("Post ERROR", code, res_body, status, vim.inspect(headers))
-    end
 end
 
 local function compare_tables(t1, t2)

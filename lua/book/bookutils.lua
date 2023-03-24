@@ -24,6 +24,12 @@ local function escape(s)
     return string.gsub(s, "[%%%]%^%-$().[*+?]", "%%%1")
 end
 
+local function print_error(s)
+    vim.cmd("echohl ErrorMsg")
+    vim.cmd("echomsg " .. '"' .. s .. '"')
+    vim.cmd("echohl None")
+end
+
 local function defaultConfig(home)
     if home == nil then
         home = _home
@@ -404,12 +410,12 @@ local function table_contains(table, val)
     return false
 end
 
-local _log = function(message)
-    local log_file_path = "/tmp/tkbooklog.log"
-    local log_file = assert(io.open(log_file_path, "a"))
-    log_file:write(message .. "\n")
-    log_file:close()
-end
+-- local _log = function(message)
+--     local log_file_path = "/tmp/tkbooklog.log"
+--     local log_file = assert(io.open(log_file_path, "a"))
+--     log_file:write(message .. "\n")
+--     log_file:close()
+-- end
 
 local saveSearch = function()
     local json_file_path = M.Cfg.home .. "/saved_search.json"
@@ -657,18 +663,18 @@ local _find_buffer_by_name = function(name)
     return -1
 end
 
-local _get_modified_buffers = function()
-    local modified_buffers = {}
-    for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
-        local buffer_name = vim.api.nvim_buf_get_name(buffer)
-        if buffer_name == nil or buffer_name == "" then
-            buffer_name = "[No Name]#" .. buffer
-        end
-        modified_buffers[buffer_name] =
-            vim.api.nvim_buf_get_option(buffer, "modified")
-    end
-    return modified_buffers
-end
+-- local _get_modified_buffers = function()
+--     local modified_buffers = {}
+--     for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
+--         local buffer_name = vim.api.nvim_buf_get_name(buffer)
+--         if buffer_name == nil or buffer_name == "" then
+--             buffer_name = "[No Name]#" .. buffer
+--         end
+--         modified_buffers[buffer_name] =
+--             vim.api.nvim_buf_get_option(buffer, "modified")
+--     end
+--     return modified_buffers
+-- end
 
 local _open_file = function(winid_openin, winid_from, path, open_cmd)
     local escaped_path = vim.fn.fnameescape(path)
@@ -687,15 +693,15 @@ local _open_file = function(winid_openin, winid_from, path, open_cmd)
     vim.api.nvim_set_current_win(winid_from)
 end
 
-local redrawHeaderNodes = function(tree)
-    local nodes = tree:get_nodes("__headers")
-    for _, node in ipairs(nodes) do
-        print(node.text)
-        if node.type == "t_header" then
-            node.text = "⊢" .. node.text
-        end
-    end
-end
+-- local redrawHeaderNodes = function(tree)
+--     local nodes = tree:get_nodes("__headers")
+--     for _, node in ipairs(nodes) do
+--         print(node.text)
+--         if node.type == "t_header" then
+--             node.text = "⊢" .. node.text
+--         end
+--     end
+-- end
 
 local _revisit = function()
     -- get all notes link to this note
@@ -1472,12 +1478,6 @@ local _BookMoveCursorTo = function(file)
             end
         end
     end
-end
-
-local function print_error(s)
-    vim.cmd("echohl ErrorMsg")
-    vim.cmd("echomsg " .. '"' .. s .. '"')
-    vim.cmd("echohl None")
 end
 
 local function global_dir_check()
