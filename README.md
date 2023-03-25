@@ -227,14 +227,14 @@ may not exist, SMP will check the existance anyway),
 it will be converted into
 
 ```markdown
-[abcd](/SMP_MD_HOME/assets/Users/your_user_name/abcd.jpg)
+[abcd](/SMP_MD_HOME/assets/xxxxxxxxxxxx.jpg)
 ```
 
 SMP_MD_HOME means the home folder you defined in [setup](#quick-start-with-packer),
 
 The file "/Users/your_user_name/abcd.jpg"
 will be copied to
-"SMP_MD_HOME/assets/Users/your_user_name/abcd.jpg"
+"SMP_MD_HOME/assets/xxxxxxxxxxxxx.jpg"
 
 This way, we keep all dropped file in 'assets' folder.
 

@@ -179,15 +179,42 @@ local concat_file_path = function(folder, filename)
     return full_path
 end
 
+local generate_short_uuid = function()
+    local template = "xxxxxxxxxxxxx"
+    local uuid = ""
+    math.randomseed(os.time())
+    math.random()
+    math.random()
+    math.random() -- To avoid predictable sequences
+    for i = 1, #template do
+        local c = template:sub(i, i)
+        if c == "x" then
+            uuid = uuid .. string.format("%x", math.random(0, 15))
+        else
+            uuid = uuid .. c
+        end
+    end
+    return uuid
+end
+
+local get_file_suffix = function(filename)
+    local suffix = string.match(filename, "%.([^.]+)$")
+    return suffix
+end
+
 local convert_line_to_wiki_link = function(line)
     local formatted_line = nil
 
     if vim.fn.filereadable(line) == 1 then
         local file_path = vim.fn.fnamemodify(line, ":p")
         local file_base_name = vim.fn.fnamemodify(file_path, ":t")
-        local new_file_path =
-            concat_file_path(M.Cfg.home, "assets" .. file_path)
-        local display_path = "/SMP_MD_HOME/assets" .. file_path
+        local suffix = get_file_suffix(file_base_name)
+        local file_in_assets = "assets/"
+            .. generate_short_uuid()
+            .. "."
+            .. suffix
+        local new_file_path = concat_file_path(M.Cfg.home, file_in_assets)
+        local display_path = "/SMP_MD_HOME/" .. file_in_assets
         local mkdirCmd = 'mkdir -p $(dirname "' .. new_file_path .. '")'
         os.execute(mkdirCmd)
         local cpCmd = 'cp "' .. file_path .. '" "' .. new_file_path .. '"'
