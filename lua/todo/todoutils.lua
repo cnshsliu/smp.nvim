@@ -8,7 +8,7 @@ local _synctodo = function(cfg)
     end
 
     --check reminders exists.
-    local status, result = os.execute("which reminders")
+    local status, _ = os.execute("which reminders")
 
     if status ~= 0 then
         print(
@@ -30,7 +30,7 @@ local _synctodo = function(cfg)
             handle:close()
         end,
     }
-    local handle, pid = vim.loop.spawn(command, spawn_params)
+    vim.loop.spawn(command, spawn_params)
 end
 
 local _setup = function(cfg)
