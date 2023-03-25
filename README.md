@@ -209,9 +209,6 @@ two functions, please define by yourself as needed.
 
 ### Drop Files
 
-Outline markdown structures in a standalone buffer, list out all tags,
-backlinks, and forward links. todos, and headers
-
 You may drop a file from MacOS Finder into NeoVim,
 the full file pathname will be inserted into
 your Markdown. SMP could convert this file into
@@ -245,9 +242,6 @@ If you don't like this function, you could disable it by
 set the following flag to false explicitly in your setup().
 
 "copy_file_into_assets = false"
-
-Outline markdown structures in a standalone buffer, list out all tags,
-backlinks, and forward links. todos, and headers
 
 ## Markdown Book
 
