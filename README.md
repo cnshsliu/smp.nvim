@@ -5,7 +5,7 @@ and feature-rich, to fully unleash your Markdown imagination.
 
 Yes, we [preview](#features), [outline](#markdown-book) and [incrementally search](#search-by-tag) Markdown in one plugin: "cnshsliu/smp.nvim", by Markdown lover for Markdown lover. If you love this plugin also, pin me a star or [buy me a coffee](https://buymeacoffee.com/liukehong).
 
-❤️[Quick Start](#quick-start-with-packer)    ❤️ [Screenshots](#screenshots)  ❤️[All Features](#all-features)
+1️⃣ [Quick Start](#quick-start-with-packer)    2️⃣ [Screenshots](#screenshots)    3️⃣ [All Features](#all-features)
 
 ## Quick start with Packer
 
