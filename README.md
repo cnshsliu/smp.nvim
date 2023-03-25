@@ -5,6 +5,8 @@ and feature-rich, to fully unleash your Markdown imagination.
 
 Yes, we [preview](#features), [outline](#markdown-book) and [incrementally search](#search-by-tag) Markdown in one plugin: "cnshsliu/smp.nvim", by Markdown lover for Markdown lover. If you love this plugin also, pin me a star or [buy me a coffee](https://buymeacoffee.com/liukehong).
 
+❤️[Quick Start](#quick-start-with-packer)    ❤️[All Features](#all-features)
+
 ## Quick start with Packer
 
 ```lua
@@ -37,10 +39,13 @@ require("smp").setup({
 
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
-## Contents
+<img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
 
-- [Previewer](#features)
+## All Features
 
+Besides the basic features of markdown preview, this plugin has the following:
+
+- [Previewer](#previewer)
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -78,9 +83,9 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 - [Need your helps](#ask-for-your-help)
 - [Others](#others)
 
-## Features
+## Previewer
 
-Besides the basic features of markdown preview, this plugin has the following:
+Preview your markdown on-the-fly.
 
 ### Wiki Link Support
 
