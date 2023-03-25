@@ -209,8 +209,6 @@ two functions, please define by yourself as needed.
 
 ### Drop Files
 
-abcd
-
 Outline markdown structures in a standalone buffer, list out all tags,
 backlinks, and forward links. todos, and headers
 
