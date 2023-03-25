@@ -452,8 +452,8 @@ const init = async () => {
 				const data = marked.parse(md_cache.string);
 				const resp_html =
 					getStylesheet() +
-					'<article class="markdown-body">' +
 					indicator(-1) +
+					'<article class="markdown-body">' +
 					data +
 					'</article>' +
 					getSmoothScrollScript(request.params.bufnr, md_cache.pos[0], md_cache.thisline.trim());
