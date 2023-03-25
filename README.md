@@ -208,9 +208,9 @@ could:
 
 1. replace one by one:  
     While you are on a line of {snippet}
-   call `:lua require('smp').expand_snippet()` to expand it.
+   call `:SmpExpandSnippet` to expand it.
 2. replace all snippets in current buffer  
-   call `:lua require('smp').expand_all_snippets()` to expand it.
+   call `:SmpExpandAllSnippets` to expand them.
 
 Simple Markdown Preview does not provide default keymappings for these
 two functions, please define by yourself as needed.
