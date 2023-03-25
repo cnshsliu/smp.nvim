@@ -31,6 +31,7 @@ local function defaultConfig(home)
         templates = home .. "/" .. "templates",
         book_use_emoji = true,
         copy_file_into_assets = true,
+        show_indicator = true,
     }
     M.Cfg = cfg
 end
@@ -157,6 +158,7 @@ local do_post_smp_config = function()
         cssfile = M.Cfg.smp_cssfile,
         snippets_folder = M.Cfg.smp_snippets_folder,
         home = M.Cfg.home,
+        show_indicator = M.Cfg.show_indicator,
     }
     if config.cssfile then
         config.cssfile = vim.fn.expand(config.cssfile)

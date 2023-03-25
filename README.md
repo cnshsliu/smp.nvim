@@ -113,6 +113,14 @@ A red block indicator always locates at the current line you are editting
 
 https://user-images.githubusercontent.com/2124836/226205371-b9710ad5-5480-4fc3-ba80-fef4549c9bce.mp4
 
+If you don't like it, just disable it by including
+
+```lua
+    show_indicator = false,
+```
+
+in your setup()
+
 ### Codes line highlight
 
 If you move cursor into a line within a code block, that line will also be highlighted.
