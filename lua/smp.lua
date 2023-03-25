@@ -1,14 +1,15 @@
 local Json = require("json")
 local Path = require("plenary.path")
 local bookutils = require("book.bookutils")
+local todoutils = require("todo.todoutils")
 
 local vim = vim
 local lastlines = { "unset" }
 
 local M = {}
 M.server_started = false
-local tmpdir
 
+local tmpdir
 M.snippet_pattern = "^%s*{(.-)}%s*$"
 
 if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
@@ -29,6 +30,7 @@ local function defaultConfig(home)
         extension = ".md",
         templates = home .. "/" .. "templates",
         book_use_emoji = true,
+        copy_file_into_assets = true,
     }
     M.Cfg = cfg
 end
@@ -154,6 +156,7 @@ local do_post_smp_config = function()
     local config = {
         cssfile = M.Cfg.smp_cssfile,
         snippets_folder = M.Cfg.smp_snippets_folder,
+        home = M.Cfg.home,
     }
     if config.cssfile then
         config.cssfile = vim.fn.expand(config.cssfile)
@@ -162,6 +165,36 @@ local do_post_smp_config = function()
         config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
     M.post2("127.0.0.1", 3030, "config", config)
+end
+
+local concat_file_path = function(folder, filename)
+    -- Check if the folder path ends with a slash
+    if folder:sub(-1) ~= "/" then
+        folder = folder .. "/"
+    end
+
+    -- Join the folder path and filename together
+    local full_path = vim.fn.join({ folder, filename }, "")
+
+    return full_path
+end
+
+local convert_line_to_wiki_link = function(line)
+    local formatted_line = nil
+
+    if vim.fn.filereadable(line) == 1 then
+        local file_path = vim.fn.fnamemodify(line, ":p")
+        local file_base_name = vim.fn.fnamemodify(file_path, ":t")
+        local new_file_path =
+            concat_file_path(M.Cfg.home, "assets" .. file_path)
+        local display_path = "/SMP_MD_HOME/assets" .. file_path
+        local mkdirCmd = 'mkdir -p $(dirname "' .. new_file_path .. '")'
+        os.execute(mkdirCmd)
+        local cpCmd = 'cp "' .. file_path .. '" "' .. new_file_path .. '"'
+        os.execute(cpCmd)
+        formatted_line = string.format("[%s](%s)", file_base_name, display_path)
+    end
+    return formatted_line
 end
 
 local do_post_data_update = function()
@@ -176,6 +209,27 @@ local do_post_data_update = function()
         current_line_number,
         false
     )[1]
+
+    --convert file path to link
+    if M.Cfg.copy_file_into_assets then
+        for index, aLine in ipairs(lines) do
+            local formatted_line = convert_line_to_wiki_link(aLine)
+            if formatted_line ~= nil then
+                lines[index] = formatted_line
+                vim.api.nvim_buf_set_lines(
+                    bufnr,
+                    index - 1,
+                    index,
+                    false,
+                    { formatted_line }
+                )
+                if index == current_line_number then
+                    current_line_text = formatted_line
+                end
+            end
+        end
+    end
+
     if M.server_started == false then
         M.log("Pls wait for server start")
         return
@@ -565,6 +619,10 @@ M.search_tag = function()
     bookutils.BookSearchTag()
 end
 
+M.synctodo = function()
+    todoutils.synctodo()
+end
+
 M.clear_log()
 M.log("\n")
 
@@ -575,6 +633,7 @@ local function Setup(cfg)
     for k, v in pairs(cfg) do
         M.Cfg[k] = v
     end
+    todoutils.setup(M.Cfg)
 end
 
 local function _setup(cfg)

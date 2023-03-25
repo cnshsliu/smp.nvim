@@ -29,6 +29,9 @@ require("smp").setup({
     -- your markdown snippets, if not defined or not exist,
     -- snippets like {snippet_1} will keep it's as-is form.
     smp_snippets_folder = "~/.config/smp/snippets",
+    -- copy single line filepath into 'home/assets' folder
+    -- default is true
+    copy_file_into_assets = true,
 })
 ```
 
@@ -37,6 +40,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 ## Contents
 
 - [Previewer](#features)
+
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -50,17 +54,22 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
   - [Markdown Template Snippet](#template-snippet)
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
+  - [Drop files from Finder into Neovim, and convert it to link automatically. ](#drop-files)
+
 - [Outliner (the book)](#markdown-book)
   - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
 - [Searcher](#search-by-tag)
   - [Search by tags incrementally](#search-by-tag) `:SmpSearchTag`
   - [Search by text incrementally](#search-by-text) `:SmpSearchText`
   - [Saved search](#saved-search)
+- [Others](#others)
+  - [Sync Todo with MacOS Reminder Application](#sync-todos) so we can  
+    sync todo lists among iPhone Reminder, Mac Book Reminder and Neovim
 - On the roads:
-    - Fully customizable
-    - One key (command) in NeoVim to start print in browser, there, you could  
-      choose to send to a physical printer or print to PDF.
-    - and more... (fully unleash your imagination, you ask, I implement )
+  - Fully customizable
+  - One key (command) in NeoVim to start print in browser, there, you could  
+    choose to send to a physical printer or print to PDF.
+  - and more... (fully unleash your imagination, you ask, I implement )
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Installation](#installation)
@@ -198,7 +207,51 @@ could:
 Simple Markdown Preview does not provide default keymappings for these
 two functions, please define by yourself as needed.
 
-### Markdown Book
+### Drop Files
+
+abcd
+
+Outline markdown structures in a standalone buffer, list out all tags,
+backlinks, and forward links. todos, and headers
+
+You may drop a file from MacOS Finder into NeoVim,
+the full file pathname will be inserted into
+your Markdown. SMP could convert this file into
+a Markdown link automatically after dropping.
+
+For example, you select a file named "abcd.jpg"
+in your home folder in Finder,
+drop this file into NeoVim,
+"/Users/your_user_name/abcd.jpg"
+will be inserted into your Markdown file.
+
+If "/Users/your_user_name/abcd.jpg" does exist
+(If you drag and drop it from Finder,
+it does exist, if you type this file path,
+may not exist, SMP will check the existance anyway),
+it will be converted into
+
+```markdown
+[abcd](/SMP_MD_HOME/assets/Users/your_user_name/abcd.jpg)
+```
+
+SMP_MD_HOME means the home folder you defined in [setup](#quick-start-with-packer),
+
+The file "/Users/your_user_name/abcd.jpg"
+will be copied to
+"SMP_MD_HOME/assets/Users/your_user_name/abcd.jpg"
+
+This way, we keep all dropped file in 'assets' folder.
+
+If you don't like this function, you could disable it by
+set the following flag to false explicitly in your setup().
+
+"copy_file_into_assets = false"
+
+Outline markdown structures in a standalone buffer, list out all tags,
+backlinks, and forward links. todos, and headers
+
+## Markdown Book
 
 Outline markdown structures in a standalone buffer, list out all tags,
 backlinks, and forward links. todos, and headers
@@ -213,8 +266,6 @@ While you are on a markdown header entry, use '>>' to demote it, use '<<' to pro
 
 press '?' in the book buffer to bring up help
 <img width="1400" alt="image" src="https://user-images.githubusercontent.com/2124836/227632690-dd8d9fd1-bd10-405c-8af5-390d57d311dd.png">
-
-
 
 ### Search by tag
 
@@ -232,6 +283,17 @@ Search by multiple text delimitered with space or ',',
 `textA textB :mytextsearch -textC`
 
 means you'd like to search all markdown fiels which contain textA, textB, but not textC. and save it as "mytextsearch". The order of these element does not matter.
+
+### Saved Search
+
+Use search syntax described above to save your query, next time, you could pick a saved search with Telescope picker,
+and re-run it by hitting `<CR>`.
+
+### Sync Todos
+
+`:SmpSyncTodo` will sync your Markdown todos with MacOS Reminder application, since reminders are kept synchronized between iPhone and MacBook already, so you are now able to access your todos anywhere, anytime with either your iPhone, MacBook.
+
+The synchronization is bidirectional.
 
 ## Requirements
 
@@ -305,8 +367,8 @@ Explains:
 1. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
 2. `<leader>kw`: wrap the word under cursor as a wiki link
 3. `<leader>kl`: wrap the current line as a wiki link
-4. `<leader>k1`: paste url string in system clipboard as a Markdown link: `[](URL_FROM_SYSTEM_CLIPBOARD)`
-5. `<leader>k2`: paste text in system clipboard as a wiki link: `[[TEXT_IN_SYSTEM_CLIPBOARD]]`
+4. `<leader>k1`: paste url string in system clipboard as a Markdown link
+5. `<leader>k2`: paste text in system clipboard as a wiki link in double square brackets.
 
 paste URL is specially useful when you are browsing and want to copy the
 web page url from browser and insert it into your note.

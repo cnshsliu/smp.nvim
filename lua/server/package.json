@@ -25,8 +25,8 @@
 		"@hapi/hapi": "^20.2.1",
 		"@hapi/inert": "^7.1.0",
 		"highlight.js": "^11.7.0",
+		"katex": "^0.16.4",
 		"marked": "^4.0.12",
-		"mermaid": "^10.0.2",
 		"plantuml-encoder": "^1.4.0"
 	},
 	"private": true,

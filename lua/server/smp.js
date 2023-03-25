@@ -12,6 +12,17 @@ const smpConfig = {
 	css: defaultMarkDownCss,
 };
 
+const smp_links = {};
+function generateRandomString(length) {
+	let result = '';
+	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	const charactersLength = characters.length;
+	for (let i = 0; i < length; i++) {
+		result += characters.charAt(Math.floor(Math.random() * charactersLength));
+	}
+	return result;
+}
+
 //katex version: https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css
 const getStylesheet = function () {
 	const stylesheet = `
@@ -391,7 +402,9 @@ const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 				//if a wiki style link to a local file
 				//convert it to SMP_LINK handler
 				let fn = path.resolve(dir_of_current_md, p2);
-				return `[${p1}](/SMP_LINK/${Buffer.from(fn).toString('base64')})`;
+				let linkId = generateRandomString(20);
+				smp_links[linkId] = fn;
+				return `[${p1}](/SMP_LINK/${linkId})`;
 			}
 		});
 		// logToFile(`Replace [${line}] to [${outputString}]`);
@@ -450,11 +463,20 @@ const init = async () => {
 			}
 		},
 	});
+
+	function replacePath(path, newFolder) {
+		let newPath = path.replace(/\/SMP_MD_HOME\//, newFolder);
+
+		return newPath;
+	}
 	server.route({
 		method: 'GET',
 		path: '/SMP_LINK/{fn}',
 		handler: (request, h) => {
-			let fn = Buffer.from(request.params.fn, 'base64').toString();
+			let fn = smp_links[request.params.fn];
+			if (fn.indexOf('/SMP_MD_HOME') >= 0) {
+				fn = replacePath(fn, smpConfig.home);
+			}
 			return h.file(fn, { confine: false });
 		},
 	});
@@ -519,7 +541,9 @@ const init = async () => {
 				);
 			} else {
 				logToFile('Zettel not found: ' + fn);
-				return h.response('Not found');
+				return h.response(
+					'Not found. <br/>You may edit your MD normally, and refresh this page later.',
+				);
 			}
 		},
 	});
@@ -538,10 +562,13 @@ const init = async () => {
 					logToFile('css does not exist: ' + payload.cssfile);
 				}
 			}
-			const keys = ['snippets_folder'];
+			const keys = ['snippets_folder', 'home'];
 			for (let i = 0; i < keys.length; i++) {
 				const key = keys[i];
 				smpConfig[key] = payload[key];
+			}
+			if (smpConfig.home && smpConfig.home.endsWith('/') === false) {
+				smpConfig.home += '/';
 			}
 			logToFile('config updated: ' + JSON.stringify(smpConfig, null, 2));
 			return h.response('config updated');
