@@ -202,7 +202,7 @@ And, please make sure:
 
 In browser previewing, snippets will be automatically displayed
 as their contents,
-however, if you want to expand them right within your Markdown
+however, if you want to expand them in place right within your Markdown
 file, that means, to repalce {snippets} with it's content, you
 could:
 
