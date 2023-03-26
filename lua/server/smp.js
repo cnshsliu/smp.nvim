@@ -78,13 +78,14 @@ function removeExistingBalls(){
 
 function setIndicator(linenr, lineText){
   let thisAnchor=null;
-  let foundLineNr = linenr;
-  for(let i=linenr; i>=1; i--){
-      thisAnchor = document.querySelector(\`.lucas_tkbp_\${linenr}\`);
+  let foundLineNr = -5;
+  for(let i=linenr; i>=0; i--){
+      thisAnchor = document.querySelector(\`.lucas_tkbp_\${i}\`);
       if(thisAnchor !==null){
         foundLineNr = i;
         break;
-      }
+      }else{
+}
   }
   if(thisAnchor !== null){
       removeExistingBalls();
@@ -137,6 +138,7 @@ function fetchData() {
             scrollToLine(data.linenr, data.thisline);
             break;
           case 'touched_line':
+console.log("touched_line: ", data.linenr, " text:", data.thisline);
             scrollToLine(data.linenr, data.thisline);
             break;
           default:
@@ -321,6 +323,7 @@ const indicator = function (lnr, scroll = true) {
 
 const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 	//Reference , don't touch
+
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
 		//Refen
 		patchLineNr = false;
@@ -328,6 +331,7 @@ const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 		//Patch bank line
 		//Blank like, don't touch
 		patchLineNr = patchLineNr;
+		return '';
 	} else if (line.match(regex_snippet)) {
 		let m = line.match(regex_snippet);
 		let snippetName = m[1].trim();
@@ -661,8 +665,9 @@ const init = async () => {
 					touched: [true, true], //touch content and linenr
 					ts: new Date().getTime(),
 				};
+				//TODO: must update without defer
 			} else {
-				logToFile('Update buf ' + payload.bufnr + ' pos to ' + JSON.stringify(payload.pos));
+				logToFile('Update POS ' + payload.bufnr + ' pos to ' + JSON.stringify(payload.pos));
 				let store = string_stores['bufnr_' + payload.bufnr];
 				if (store) {
 					string_stores['bufnr_' + payload.bufnr] = {
