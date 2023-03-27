@@ -5,7 +5,19 @@ and feature-rich, to fully unleash your Markdown imagination.
 
 Yes, we [preview](#features), [outline](#markdown-book) and [incrementally search](#search-by-tag) Markdown in one plugin: "cnshsliu/smp.nvim", by Markdown lover for Markdown lover. If you love this plugin also, pin me a star or [buy me a coffee](https://buymeacoffee.com/liukehong).
 
-1️⃣ [Quick Start](#quick-start-with-packer)    2️⃣ [Screenshots](#screenshots)    3️⃣ [All Features](#all-features)
+1️⃣ [Quick Start](#quick-start-with-packer) 2️⃣ [Screenshots](#screenshots) 3️⃣ [All Features](#all-features)
+
+## Latest Features:
+
+😀😀😀 [Switch browser tab automatically](#switch-browser-tab-automatically) when editing multiple Markdowns
+
+You may be editing several Markdown files in NeoVim at the same time,
+when you switch from one file to another,
+you'd like to let browser to switch previewing tab to your current editing Markdown.
+
+😀😀😀 Make a Markdown link on Drag and dropping file from Finder
+
+[See more exiting features for Markdown lover...](#all-features)
 
 ## Quick start with Packer
 
@@ -38,6 +50,7 @@ require("smp").setup({
 ```
 
 ## Screenshots
+
 https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
 
 <img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
@@ -47,6 +60,7 @@ https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9
 Besides the basic features of markdown preview, this plugin has the following:
 
 - [Previewer](#previewer)
+
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -61,6 +75,7 @@ Besides the basic features of markdown preview, this plugin has the following:
     - A simple requirement scenario is to have the same {header} and {footer} for all your Markdown.
   - Smooth scrolling to current line, sync between NeoVim and browser
   - [Drop files from Finder into Neovim, and convert it to link automatically. ](#drop-files) 🎉
+  - [Switch browser tab automatically](#switch-browser-tab-automatically) when you switch among multiple Markdown files
 
 - [Outliner (the book)](#markdown-book)
   - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
@@ -256,6 +271,11 @@ If you don't like this function, you could disable it by
 set the following flag to false explicitly in your setup().
 
 "copy_file_into_assets = false"
+
+### Switch browser tab automatically
+
+Just install a simple Edge/Chrome extension.
+you need to install it manually currently.
 
 ## Markdown Book
 
