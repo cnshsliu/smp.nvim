@@ -205,8 +205,14 @@ local get_file_suffix = function(filename)
     return suffix
 end
 
+local trim = function(s)
+    return (s:gsub("^%s*(.-)%s*$", "%1"))
+end
+
 local convert_line_to_wiki_link = function(line)
     local formatted_line = nil
+
+    line = trim(line)
 
     if vim.fn.filereadable(line) == 1 then
         local file_path = vim.fn.fnamemodify(line, ":p")
