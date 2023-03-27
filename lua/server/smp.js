@@ -1,5 +1,4 @@
 'use strict';
-
 const marked = require('marked');
 const katex = require('katex');
 const path = require('path');
@@ -7,6 +6,7 @@ const Hapi = require('@hapi/hapi');
 const fs = require('fs');
 const plantumlEncoder = require('plantuml-encoder');
 
+let current_fn_key = '';
 const defaultMarkDownCss = '/styles/github-markdown.css';
 const smpConfig = {
 	css: defaultMarkDownCss,
@@ -24,12 +24,14 @@ function generateRandomString(length) {
 }
 
 //katex version: https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css
-const getStylesheet = function () {
+const getStylesheet = function (fn_key) {
 	const stylesheet = `
   <link rel="stylesheet" href="${smpConfig.css}" type="text/css">
 	<link rel="stylesheet" href="/styles/highlight-github.css" type="text/css">
 	<link rel="stylesheet" href="/styles/smp.css" type="text/css">
   <link rel="stylesheet" href="/styles/katex.min.css">
+  <script src="/diffdom/diffDOM.js"></script>
+  <script>const myFnKey="${fn_key}";</script>
 
 	
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -57,10 +59,10 @@ const getStylesheet = function () {
   </style>
 `;
 
-	return stylesheet;
+	return stylesheet.replace(/\n/g, '');
 };
 
-const getSmoothScrollScript = function (bufnr, lnr, thisline, showIndicator = true) {
+const getSmoothScrollScript = function (fn_key, lnr, thisline, showIndicator = true) {
 	thisline = thisline.replace(/`/g, '\\`');
 	return `
   <script type="module">
@@ -100,7 +102,7 @@ function scrollOnly(linenr, lineText){
   linenr = linenr - 3;
   if (linenr < 1) linenr = 0;
   let thisAnchor=null;
-  let foundLineNr = linenr;
+  let foundLineNr = -3;
   for(let i=linenr; i>=0; i--){
       thisAnchor = document.querySelector(\`.scrollTo.lucas_tkbp_\${i}\`);
       if(thisAnchor !==null){
@@ -109,7 +111,7 @@ function scrollOnly(linenr, lineText){
       }
   }
   if(thisAnchor !== null){
-      try{thisAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });}catch(err){}
+      try{thisAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });}catch(err){ }
   }
 }
 
@@ -124,8 +126,9 @@ scrollToLine(${lnr}, \`${thisline}\`);
 
 let fetchFailed = 0;
 let intervalId=0;
+const dd = new diffDOM.DiffDOM();
 function fetchData() {
-    let url = "http://127.0.0.1:3030/getupdate/${bufnr}/" + thisTs;
+    let url = "http://127.0.0.1:3030/getupdate/${fn_key}/" + thisTs;
     lastTs = thisTs;
     fetch(url)
       .then((response) => {
@@ -134,30 +137,37 @@ function fetchData() {
       .then((data) => {
         switch(data.code){
           case 'touched_all':
-            document.querySelector(".markdown-body").innerHTML = data.html;
-            scrollToLine(data.linenr, data.thisline);
+            const oldElement = document.querySelector(".markdown-body");
+            const newElement = oldElement.cloneNode(false);
+
+            newElement.innerHTML = data.html;
+
+            const diff = dd.diff(oldElement, newElement);
+            dd.apply(oldElement, diff);
+
+
+
+            requestAnimationFrame(() => {
+                        setTimeout(()=>{scrollToLine(data.linenr, data.thisline);}, 200);
+            });
             break;
           case 'touched_line':
-console.log("touched_line: ", data.linenr, " text:", data.thisline);
             scrollToLine(data.linenr, data.thisline);
             break;
           default:
         }
         if(data.ts) {thisTs = data.ts; }
-	const mermaidElement = document.querySelector('.mermaid');
-	if(mermaidElement){
-		window.sxMxPx_x_M1e2r0mxaidJs.initialize({startOnLoad:false});
-		//Dont' use init()
-		//https://mermaid.js.org/config/usage.html#calling-mermaid-init-deprecated
-		window.sxMxPx_x_M1e2r0mxaidJs.run({
-			querySelector: '.mermaid',
-			suppressErrors: true,
-		}).then(()=>{
-		})
-	}
+          const mermaidElement = document.querySelector('.mermaid');
+          if(mermaidElement){
+            window.sxMxPx_x_M1e2r0mxaidJs.initialize({startOnLoad:false});
+            window.sxMxPx_x_M1e2r0mxaidJs.run({
+              querySelector: '.mermaid',
+              suppressErrors: true,
+            }).then(()=>{
+            })
+          }
       })
       .catch((error) => {
-        // console.error("There was a problem with the fetch operation:", error);
         fetchFailed += 1;
         if(fetchFailed > 200){
           try{clearInterval(intervalId);}catch(err){}
@@ -166,7 +176,7 @@ console.log("touched_line: ", data.linenr, " text:", data.thisline);
 }
 intervalId = setInterval(fetchData, 500);
 </script>
-  `;
+  `.replace(/\n/g, '');
 };
 
 const inputString = 'The file is [[example.txt]], and this is [[example2]]';
@@ -445,19 +455,22 @@ const init = async () => {
 	});
 	server.route({
 		method: 'GET',
-		path: '/preview/{bufnr}',
+		path: '/preview/{fn_key}',
 		handler: (request, h) => {
-			let md_cache = string_stores['bufnr_' + request.params.bufnr];
+			let fn_key = request.params.fn_key;
+			let md_cache = string_stores[fn_key];
 			if (md_cache) {
 				const data = marked.parse(md_cache.string);
 				const resp_html =
-					getStylesheet() +
+					'<head>' +
+					getStylesheet(fn_key) +
+					'</head>' +
 					indicator(-1) +
-					'<article class="markdown-body">' +
+					'<article class="markdown-body">\n' +
 					data +
 					'</article>' +
 					getSmoothScrollScript(
-						request.params.bufnr,
+						fn_key,
 						md_cache.pos[0],
 						md_cache.thisline.trim(),
 						smpConfig.show_indicator,
@@ -488,11 +501,18 @@ const init = async () => {
 	});
 	server.route({
 		method: 'GET',
-		path: '/getupdate/{bufnr}/{ts}',
+		path: '/get_fn_key',
 		handler: (request, h) => {
-			let { bufnr, ts } = request.params;
+			return h.response({ fn_key: current_fn_key });
+		},
+	});
+	server.route({
+		method: 'GET',
+		path: '/getupdate/{fn_key}/{ts}',
+		handler: (request, h) => {
+			let { fn_key, ts } = request.params;
 			function getResponse() {
-				let md_cache = string_stores['bufnr_' + bufnr];
+				let md_cache = string_stores[fn_key];
 				if (md_cache) {
 					if (md_cache.ts !== Number(ts)) {
 						if (md_cache.touched[0]) {
@@ -588,10 +608,11 @@ const init = async () => {
 			let patched = [];
 			let pure = [];
 			let lines = payload.lines;
-			if (!fn) {
+			let fn_key = payload.fn_key;
+			if (!fn_key || !fn) {
 				payload.lines.splice(1, payload.lines.length - 1, '...');
-				logToFile('Filename is undefined, bypass update ' + JSON.stringify(payload));
-				return h.response('Filename is undefined, bypass update');
+				logToFile('fn_key is undefined, bypass update ' + JSON.stringify(payload));
+				return h.response('fn_key is undefined, bypass update');
 			}
 			let dir_of_current_md = path.dirname(fn);
 			let codeLang = '';
@@ -657,23 +678,32 @@ const init = async () => {
 				// 	}
 				// });
 				// logToFile('Write store for bufnr ' + payload.bufnr);
-				string_stores['bufnr_' + payload.bufnr] = {
+				string_stores[fn_key] = {
 					string: md_string,
 					pos: payload.pos,
 					fn: payload.fn,
+					fn_key: payload.fn_key,
 					thisline: payload.thisline,
 					touched: [true, true], //touch content and linenr
 					ts: new Date().getTime(),
 				};
+				current_fn_key = fn_key;
+				logToFile(
+					'Update content:\t' + current_fn_key + ' , pos to :' + JSON.stringify(payload.pos),
+				);
 				//TODO: must update without defer
 			} else {
-				logToFile('Update POS ' + payload.bufnr + ' pos to ' + JSON.stringify(payload.pos));
-				let store = string_stores['bufnr_' + payload.bufnr];
+				current_fn_key = fn_key;
+				logToFile(
+					'Update position:\t' + current_fn_key + ' , pos to: ' + JSON.stringify(payload.pos),
+				);
+				let store = string_stores[fn_key];
 				if (store) {
-					string_stores['bufnr_' + payload.bufnr] = {
+					string_stores[fn_key] = {
 						string: store.string,
 						pos: payload.pos,
 						fn: payload.fn,
+						fn_key: fn_key,
 						thisline: payload.thisline,
 						touched: [false, true], //touch linenr only
 						ts: new Date().getTime(),

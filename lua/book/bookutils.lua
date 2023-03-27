@@ -1494,6 +1494,18 @@ local function global_dir_check()
     return ret
 end
 
+local expand_all = function()
+    local updated = false
+
+    for _, node in pairs(BookState.book_tree.nodes.by_id) do
+        updated = node:expand() or updated
+    end
+
+    if updated then
+        BookState.book_tree:render()
+    end
+end
+
 local _BookShow = function(opts)
     if BookState.loaded then
         M.BookQuit()
@@ -1523,7 +1535,7 @@ local _BookShow = function(opts)
     local tk_book_group =
         vim.api.nvim_create_augroup("tkbook", { clear = true })
     vim.api.nvim_create_autocmd("FileType", {
-        pattern = "telekasten",
+        pattern = { "telekasten", "markdown" },
         group = tk_book_group,
         callback = function(args)
             if
@@ -1553,7 +1565,7 @@ local _BookShow = function(opts)
             buftype = "nofile",
             modifiable = false,
             swapfile = false,
-            filetype = "telekasten",
+            filetype = "smpbook",
             undolevels = -1,
         },
         win_options = {
@@ -1568,17 +1580,6 @@ local _BookShow = function(opts)
 
     BookState.book_tree = _revisit()
 
-    local expand_all = function()
-        local updated = false
-
-        for _, node in pairs(BookState.book_tree.nodes.by_id) do
-            updated = node:expand() or updated
-        end
-
-        if updated then
-            BookState.book_tree:render()
-        end
-    end
     expand_all()
     vim.api.nvim_win_set_cursor(0, { BookState.center_note_line, 6 })
     local map_options = { noremap = true, nowait = true }
@@ -1921,6 +1922,26 @@ M.BookShow = function(opts)
     opts.rg_pcre = M.Cfg.rg_pcre
     opts.book_use_emoji = M.Cfg.book_use_emoji
     _BookShow(opts)
+end
+
+M.BookThis = function(opts)
+    if BookState.book_win and BookState.book_bufnr then
+        vim.api.nvim_set_current_win(BookState.book_win)
+        vim.api.nvim_feedkeys("f", "n", true)
+        local linePos = vim.api.nvim_win_get_cursor(BookState.book_win)
+        vim.api.nvim_set_current_win(BookState.main_win)
+        BookState.main_bufnr = vim.api.nvim_get_current_buf()
+        BookState.center_note =
+            Pinfo:new({ filepath = vim.fn.expand("%:p"), M.Cfg })
+        vim.api.nvim_set_current_win(BookState.book_win)
+        BookState.book_tree.nodes = {}
+        BookState.book_tree = _revisit()
+        expand_all()
+        vim.api.nvim_win_set_cursor(0, { BookState.center_note_line, 6 })
+        pcall(vim.api.nvim_win_set_cursor, 0, linePos)
+    else
+        M.BookShow(opts)
+    end
 end
 
 M.BookSearchTag = function(opts)

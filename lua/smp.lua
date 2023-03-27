@@ -5,6 +5,7 @@ local todoutils = require("todo.todoutils")
 
 local vim = vim
 local lastlines = { "unset" }
+local fn_key_map = {}
 
 local M = {}
 M.server_started = false
@@ -288,12 +289,19 @@ local do_post_data_update = function()
     if fn == nil then
         M.log("WHYYYYYYYYYYY, fn is nil")
     end
+    local fn_key = fn_key_map[fn]
+    if fn_key == nil then
+        fn_key = generate_short_uuid()
+        fn_key_map[fn] = fn_key
+    end
+    M.log(string.format("Update fn:%s\tfn_key=%s", fn, fn_key))
     local payload = {
         lines = linesTobePosted,
         pos = pos,
         bufnr = bufnr,
         fn = fn,
         thisline = current_line_text,
+        fn_key = fn_key,
     }
     -- print(string.format("%s...%s...%d", "Post", vim.inspect(pos), bufnr))
     if payload.fn then
@@ -466,14 +474,18 @@ M.start = function(openBrowserAfterStart)
             M.log("After server spawn")
             local bufnr = vim.api.nvim_win_get_buf(0)
             local lastlines_key = string.format("buf_%d", bufnr)
+            local file_path = vim.api.nvim_buf_get_name(bufnr)
+            local fn = vim.fn.expand(file_path)
             lastlines[lastlines_key] = nil
             do_post_smp_config()
             do_post_data_update()
             -- open browser here
+            local fn_key = fn_key_map[fn]
+            M.log(string.format("Got fn_key for %s, got %s", fn, fn_key))
             local function open_browser()
                 M.log("Open browser now")
                 M.open_url(
-                    string.format("http://127.0.0.1:3030/preview/%d", bufnr)
+                    string.format("http://127.0.0.1:3030/preview/%s", fn_key)
                 )
             end
             if openBrowserAfterStart then
@@ -508,8 +520,11 @@ M.preview = function()
     lastlines[lastlines_key] = nil
     post_data_update()
     -- open browser here
+    local file_path = vim.api.nvim_buf_get_name(bufnr)
+    local fn = vim.fn.expand(file_path)
+    local fn_key = fn_key_map[fn]
     local function open_browser()
-        M.open_url(string.format("http://127.0.0.1:3030/preview/%d", bufnr))
+        M.open_url(string.format("http://127.0.0.1:3030/preview/%s", fn_key))
     end
     vim.defer_fn(open_browser, 300)
 end
@@ -638,6 +653,9 @@ end
 
 M.book = function()
     bookutils.BookShow()
+end
+M.bookthis = function()
+    bookutils.BookThis()
 end
 
 M.search_text = function()

@@ -1,0 +1,10 @@
+{
+	"name": "smp.nvim Companion",
+	"version": "1.0",
+	"description": "NeoVim smp.nvim plugin companion by Liukehong",
+	"manifest_version": 2,
+	"permissions": ["tabs", "activeTab", "http://*/*", "https://*/*"],
+	"background": {
+		"scripts": ["background.js"]
+	}
+}
