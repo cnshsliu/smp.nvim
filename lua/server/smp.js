@@ -392,12 +392,13 @@ const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 					fn_stores[myKey] = fullPath;
 				}
 				//Give it 'zettel' class, so the display style of zettel can be easily customized later
-				return `<span class="zettel"><a href="/zettel/${myKey}">${p1}</a></spa>`;
+				return `<span class="zettel"><a href="/zettel/${myKey}">${p1}</a></span>`;
 			} else {
 				//also highlight missing zettel file
 				return `<span class="notfound">${p1}</span>`;
 			}
 		});
+		// logToFile('convert ' + line + ' to ' + outputString);
 		line = outputString;
 	} else if (line.match(regex_link)) {
 		//Patch local MD link

@@ -459,7 +459,7 @@ M.start = function(openBrowserAfterStart)
         local smp_group =
             vim.api.nvim_create_augroup("smp_group", { clear = true })
         vim.api.nvim_create_autocmd(
-            { "CursorHold", "CursorHoldI", "CursorMoved", "CursorMovedI" },
+            { "CursorHold", "CursorMoved", "CursorHoldI", "CursorMovedI" },
             {
                 pattern = { "*.md" },
                 group = smp_group,
