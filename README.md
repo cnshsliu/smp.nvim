@@ -9,13 +9,13 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 ## Latest Features:
 
-😀😀😀 [Switch browser tab automatically](#switch-browser-tab-automatically) when editing multiple Markdowns
+😀😀😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
 
 You may be editing several Markdown files in NeoVim at the same time,
 when you switch from one file to another,
 you'd like to let browser to switch previewing tab to your current editing Markdown.
 
-😀😀😀 Make a Markdown link on Drag and dropping file from Finder
+😀😀😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files)
 
 [See more exiting features for Markdown lover...](#all-features)
 
@@ -274,8 +274,17 @@ set the following flag to false explicitly in your setup().
 
 ### Switch browser tab automatically
 
+Switch files in Neovim, browser will switch previewing tab automatically for you.
+
+![FollowMd](https://user-images.githubusercontent.com/2124836/228006327-45db610e-543c-4335-a9f4-3ea914a80c7c.gif)
+
 Just install a simple Edge/Chrome extension.
 you need to install it manually currently.
+
+[Download zip file](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
+
+
+
 
 ## Markdown Book
 
