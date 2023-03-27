@@ -142,6 +142,9 @@ If you don't like it, just disable it by including
 
 in your setup()
 
+Or, `SmpIndicator 0` to disable, `SmpIndicator 1` to enable,
+and `SmpIndicator -1` to use "show_indicator" value defined in setup()
+
 ### Codes line highlight
 
 If you move cursor into a line within a code block, that line will also be highlighted.
@@ -282,9 +285,6 @@ Just install a simple Edge/Chrome extension.
 you need to install it manually currently.
 
 [Download zip file](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
-
-
-
 
 ## Markdown Book
 

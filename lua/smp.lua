@@ -504,6 +504,10 @@ M.cleanup = function()
     M.server_started = false
 end
 
+M.indicator = function(flag)
+    M.post2("127.0.0.1", 3030, "indicator", { indicator = flag })
+end
+
 M.stop = function()
     M.post2("127.0.0.1", 3030, "stop", {})
     M.server_started = false
