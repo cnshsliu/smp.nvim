@@ -24,6 +24,8 @@
 	"dependencies": {
 		"@hapi/hapi": "^20.2.1",
 		"@hapi/inert": "^7.1.0",
+		"@hapi/wreck": "^18.0.1",
+		"cheerio": "^1.0.0-rc.12",
 		"highlight.js": "^11.7.0",
 		"katex": "^0.16.4",
 		"marked": "^4.0.12",

@@ -7,8 +7,9 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 1️⃣ [Quick Start](#quick-start-with-packer) 2️⃣ [Screenshots](#screenshots) 3️⃣ [All Features](#all-features)
 
-## Latest Features:
+## Latest Update:
 
+😀😀😀 [Turn URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
 😀😀😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
 
 You may be editing several Markdown files in NeoVim at the same time,
@@ -274,6 +275,10 @@ If you don't like this function, you could disable it by
 set the following flag to false explicitly in your setup().
 
 "copy_file_into_assets = false"
+
+### Convert URL into Link Automatically
+
+Keep a valid URL on a single line, it will be converted into a link automatically. the page title will also be extracted automatically for you.
 
 ### Switch browser tab automatically
 

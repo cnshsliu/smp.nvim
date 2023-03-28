@@ -64,11 +64,12 @@ M.clear_log = function()
 end
 
 M.post2 = function(host, port, endpoint, data)
-    local url = string.format("http://%s:%d/%s", host, port, endpoint)
+    local url = string.format("http://%s:%d%s", host, port, endpoint)
     local suffix = ".json"
-    local outfile = tmpdir .. "/tempfile" .. suffix
+    local payloadFile = tmpdir .. "/tempfile" .. suffix
+    local outfile = tmpdir .. "/tempfile.out"
 
-    local file, err = io.open(outfile, "w")
+    local file, err = io.open(payloadFile, "w")
     if not file then
         print("Error opening file: " .. err)
         return
@@ -78,10 +79,12 @@ M.post2 = function(host, port, endpoint, data)
 
     -- Use curl to make the POST request with the payload file
     local command = string.format(
-        "curl -s -X POST -H 'Content-Type: application/json' -d '@%s' %s >/dev/null 2>&1",
-        outfile,
-        url
+        "curl -s -X POST -H 'Content-Type: application/json' -d '@%s' %s >%s 2>/dev/null",
+        payloadFile,
+        url,
+        outfile
     )
+    M.log(command)
     os.execute(command)
     -- local success, status, code = os.execute(command)
     -- if not success then
@@ -112,6 +115,19 @@ M.post2 = function(host, port, endpoint, data)
     -- if code ~= 200 then
     --     print("Post ERROR", code, res_body, status, vim.inspect(headers))
     -- end
+end
+
+M.get_title = function(url, callback)
+    M.post2("127.0.0.1", 3030, "/urltitle", { url = url })
+    local outfile = tmpdir .. "/tempfile.out"
+    local file = io.open(outfile, "r")
+    if file == nil then
+        print("file is nil")
+    else
+        local content = file:read("*all")
+        file:close()
+        callback(content)
+    end
 end
 
 local function compare_tables(t1, t2)
@@ -167,7 +183,7 @@ local do_post_smp_config = function()
     if config.snippets_folder then
         config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
-    M.post2("127.0.0.1", 3030, "config", config)
+    M.post2("127.0.0.1", 3030, "/config", config)
 end
 
 local concat_file_path = function(folder, filename)
@@ -208,11 +224,40 @@ end
 local trim = function(s)
     return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
+local is_valid_url = function(url)
+    local pattern = "^(https?://[%w-_%.%?%.:/%+=&%%]+#?[%w-_%.%?%.:/%+=&%%]*)$"
+    return url:match(pattern) ~= nil
+end
+
+local timeout = function(func, timeout)
+    local co = coroutine.create(func)
+    local start_time = os.clock()
+
+    while coroutine.status(co) ~= "dead" do
+        coroutine.resume(co)
+
+        if os.clock() - start_time >= timeout then
+            return "timeout"
+        end
+    end
+
+    return "completed"
+end
 
 local convert_line_to_wiki_link = function(line)
     local formatted_line = nil
+    local linkType = ""
 
     line = trim(line)
+
+    -- if a string starts with '/Users'
+    if vim.fn.filereadable(line) then
+        M.log(line .. " file exists")
+    end
+    line = line:gsub("\\", "")
+    if vim.fn.filereadable(line) then
+        M.log(line .. " file exists 2")
+    end
 
     if vim.fn.filereadable(line) == 1 then
         local file_path = vim.fn.fnamemodify(line, ":p")
@@ -229,8 +274,21 @@ local convert_line_to_wiki_link = function(line)
         local cpCmd = 'cp "' .. file_path .. '" "' .. new_file_path .. '"'
         os.execute(cpCmd)
         formatted_line = string.format("[%s](%s)", file_base_name, display_path)
+        linkType = "WIKI"
+    elseif is_valid_url(line) then
+        M.get_title(line, function(title)
+            formatted_line = string.format("[%s](%s)", title, line)
+        end)
+        linkType = "URL"
     end
-    return formatted_line
+    return formatted_line, linkType
+end
+
+local enter_insert_mode_if_normal = function()
+    local mode = vim.api.nvim_get_mode().mode
+    if mode == "n" or mode == "no" then
+        vim.fn.feedkeys("i", "n")
+    end
 end
 
 local do_post_data_update = function()
@@ -249,7 +307,7 @@ local do_post_data_update = function()
     --convert file path to link
     if M.Cfg.copy_file_into_assets then
         for index, aLine in ipairs(lines) do
-            local formatted_line = convert_line_to_wiki_link(aLine)
+            local formatted_line, linkType = convert_line_to_wiki_link(aLine)
             if formatted_line ~= nil then
                 lines[index] = formatted_line
                 vim.api.nvim_buf_set_lines(
@@ -298,7 +356,9 @@ local do_post_data_update = function()
     local fn_key = fn_key_map[fn]
     if fn_key == nil then
         fn_key = generate_short_uuid()
-        fn_key_map[fn] = fn_key
+        if fn then
+            fn_key_map[fn] = fn_key
+        end
     end
     M.log(string.format("Update fn:%s\tfn_key=%s", fn, fn_key))
     local payload = {
@@ -311,7 +371,7 @@ local do_post_data_update = function()
     }
     -- print(string.format("%s...%s...%d", "Post", vim.inspect(pos), bufnr))
     if payload.fn then
-        M.post2("127.0.0.1", 3030, "update", payload)
+        M.post2("127.0.0.1", 3030, "/update", payload)
     end
     -- M.log("\tPosted")
 end
@@ -506,16 +566,16 @@ M.start = function(openBrowserAfterStart)
 end
 
 M.cleanup = function()
-    M.post2("127.0.0.1", 3030, "stop", {})
+    M.post2("127.0.0.1", 3030, "/stop", {})
     M.server_started = false
 end
 
 M.indicator = function(flag)
-    M.post2("127.0.0.1", 3030, "indicator", { indicator = flag })
+    M.post2("127.0.0.1", 3030, "/indicator", { indicator = flag })
 end
 
 M.stop = function()
-    M.post2("127.0.0.1", 3030, "stop", {})
+    M.post2("127.0.0.1", 3030, "/stop", {})
     M.server_started = false
     pcall(vim.api.nvim_del_augroup_by_name, "smp_group")
 end

@@ -3,6 +3,8 @@ const marked = require('marked');
 const katex = require('katex');
 const path = require('path');
 const Hapi = require('@hapi/hapi');
+const Wreck = require('@hapi/wreck');
+const Cheerio = require('cheerio');
 const fs = require('fs');
 const plantumlEncoder = require('plantuml-encoder');
 
@@ -460,14 +462,39 @@ const init = async () => {
 		},
 	});
 
-	server.r;
 	server.route({
 		method: 'POST',
 		path: '/indicator',
 		handler: (request, _) => {
 			let payload = request.payload;
-			logToFile(JSON.stringify(payload));
 			global_indicator = Number(payload.indicator);
+			return 'OK';
+		},
+	});
+	server.route({
+		method: 'POST',
+		path: '/urltitle',
+		handler: async (request, h) => {
+			let payload = request.payload;
+			let url = payload.url;
+			//get the title of a url
+			//https://stackoverflow.com/questions/36572540/nodejs-get-web-page-title
+			try {
+				const options = {
+					timeout: 5000,
+				};
+				const { payload } = await Wreck.get(url, options);
+				const $ = Cheerio.load(payload.toString());
+				const title = $('title').text();
+				return title;
+			} catch (err) {
+				if (err.isBoom && err.output.statusCode === 504) {
+					return 'Timeout 5sec';
+				} else {
+					console.error(err);
+					return h.response('Error fetching title').code(500);
+				}
+			}
 		},
 	});
 	server.route({
