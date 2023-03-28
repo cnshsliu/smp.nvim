@@ -229,21 +229,6 @@ local is_valid_url = function(url)
     return url:match(pattern) ~= nil
 end
 
-local timeout = function(func, timeout)
-    local co = coroutine.create(func)
-    local start_time = os.clock()
-
-    while coroutine.status(co) ~= "dead" do
-        coroutine.resume(co)
-
-        if os.clock() - start_time >= timeout then
-            return "timeout"
-        end
-    end
-
-    return "completed"
-end
-
 local convert_line_to_wiki_link = function(line)
     local formatted_line = nil
     local linkType = ""
@@ -284,12 +269,12 @@ local convert_line_to_wiki_link = function(line)
     return formatted_line, linkType
 end
 
-local enter_insert_mode_if_normal = function()
-    local mode = vim.api.nvim_get_mode().mode
-    if mode == "n" or mode == "no" then
-        vim.fn.feedkeys("i", "n")
-    end
-end
+-- local enter_insert_mode_if_normal = function()
+--     local mode = vim.api.nvim_get_mode().mode
+--     if mode == "n" or mode == "no" then
+--         vim.fn.feedkeys("i", "n")
+--     end
+-- end
 
 local do_post_data_update = function()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -307,7 +292,7 @@ local do_post_data_update = function()
     --convert file path to link
     if M.Cfg.copy_file_into_assets then
         for index, aLine in ipairs(lines) do
-            local formatted_line, linkType = convert_line_to_wiki_link(aLine)
+            local formatted_line, _ = convert_line_to_wiki_link(aLine)
             if formatted_line ~= nil then
                 lines[index] = formatted_line
                 vim.api.nvim_buf_set_lines(
