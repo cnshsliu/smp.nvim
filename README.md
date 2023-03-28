@@ -10,6 +10,7 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 ## Latest Update:
 
 😀😀😀 [Turn URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
+
 😀😀😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
 
 You may be editing several Markdown files in NeoVim at the same time,
