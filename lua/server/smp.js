@@ -194,6 +194,7 @@ intervalId = setInterval(fetchData, 500);
 const inputString = 'The file is [[example.txt]], and this is [[example2]]';
 const regex_wiki = /\[\[(.*?)\]\]/g;
 const regex_snippet = /^\s*{(.+)}\s*$/;
+const regex_toc = /\{(:)?(toc|TOC|Toc)\}/;
 const regex_link = /\[(.*)]\s*\((.+)\)/;
 
 let string_stores = {};
@@ -338,17 +339,69 @@ const indicator = function (lnr, scroll = true) {
 	return `<span class="${scroll ? 'scrollto' : ''} lucas_tkbp_${lnr + 1}">&nbsp;</span>`;
 };
 
-const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
-	//Reference , don't touch
+const generateTOC = function (markdownLines) {
+	const toc = [];
+	const headerRegex = /^(#{1,6})\s+(.+)$/;
 
+	markdownLines.forEach((line, index) => {
+		const match = line.match(headerRegex);
+		if (match) {
+			const level = match[1].length;
+			const title = match[2].trim();
+			const anchor = title
+				.toLowerCase()
+				.replace(/[^a-z0-9\s]/g, '')
+				.replace(/\s+/g, '-');
+			toc.push({ level, title, anchor, lineNumber: index + 1 });
+		}
+	});
+
+	return toc;
+};
+
+const generateTOCHTML = function (toc) {
+	let html = '<div class="smp-toc"><ul>';
+	let previousLevel = 1;
+
+	for (let i = 0; i < toc.length; i++) {
+		const currentItem = toc[i];
+		const nextItem = toc[i + 1];
+
+		html += `<li><a href="#${currentItem.anchor}">${currentItem.title}</a></li>`;
+
+		if (nextItem) {
+			const levelDifference = nextItem.level - currentItem.level;
+			if (levelDifference > 0) {
+				html += '<ul>';
+			} else if (levelDifference < 0) {
+				html += '</ul>'.repeat(-levelDifference);
+			}
+			previousLevel = currentItem.level;
+		}
+	}
+
+	html += '</ul>'.repeat(previousLevel);
+	html += '</div>';
+
+	return html;
+};
+
+const patchLine = (allLines, line, lnr, dir_of_current_md, appendIndicator = true) => {
+	//
+	//Reference , don't touch
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
 		//Refen
-		patchLineNr = false;
+		appendIndicator = false;
 	} else if (line.match(/^\s*$/)) {
 		//Patch bank line
 		//Blank like, don't touch
-		patchLineNr = patchLineNr;
+		appendIndicator = appendIndicator;
 		return '';
+	} else if (line.match(regex_toc)) {
+		const toc = generateTOC(allLines);
+		logToFile(JSON.stringify(toc));
+		line = generateTOCHTML(toc);
+		logToFile(line);
 	} else if (line.match(regex_snippet)) {
 		let m = line.match(regex_snippet);
 		let snippetName = m[1].trim();
@@ -428,7 +481,7 @@ const patchLine = (line, lnr, dir_of_current_md, patchLineNr = true) => {
 		// logToFile(`Replace [${line}] to [${outputString}]`);
 		line = outputString;
 	}
-	return patchLineNr ? `${line}${indicator(lnr)}` : line;
+	return appendIndicator ? `${line}${indicator(lnr)}` : line;
 };
 
 const init = async () => {
@@ -619,7 +672,7 @@ const init = async () => {
 			if (fileExists) {
 				let dir_of_current_md = path.dirname(fn);
 				let md = fs.readFileSync(fn, 'utf8');
-				md = patchLine(md, 0, dir_of_current_md, false);
+				md = patchLine([md], md, 0, dir_of_current_md, false);
 				const data = marked.parse(md);
 
 				return h.response(
@@ -691,10 +744,17 @@ const init = async () => {
 				for (let i = 0; i < lines.length; i++) {
 					let x = lines[i];
 					pure.push(x);
-					patched.push(patchLine(lines[i], i, dir_of_current_md, true));
+					patched.push(patchLine(lines, lines[i], i, dir_of_current_md, true));
 
+					//a code block start， at the end of code block,
+					//will revert any line patch, and use the original line
+					//this is to avoid the line number in code block is changed
+					//which will cause the line number in the code block is not correct
+					//when the code block is rendered by marked
+					//the code block is identified by ``` at the start and end of the block
+					//the code block can be identified by the language name, e.g. ```js
+					//if the code block is not identified by language name, it is treated as pure text
 					if (x.match(/^\s*`/)) {
-						//a code block start
 						if (codeStart < 0) {
 							codeStart = i;
 							let match = x.match(/```(\w*)/);
@@ -708,6 +768,8 @@ const init = async () => {
 							for (let j = codeStart; j <= codeEnd; j++) {
 								patched[j] = pure[j];
 							}
+							//if its a supported codeLang, we will insert a indicator
+							//to indicate the start and end of the code block
 							if (imagelizedLang.indexOf(codeLang) >= 0) {
 								//for imagelized text, no auto scroll
 								//Befote the code start
@@ -732,22 +794,6 @@ const init = async () => {
 					}
 				}
 				let md_string = patched.join('\n');
-				// logToFile(
-				// 	'Reeived ... ' +
-				// 		payload.lines.length +
-				// 		' lines, pos:' +
-				// 		payload.pos +
-				// 		', fn:' +
-				// 		payload.fn,
-				// );
-				// fs.writeFile('/Users/lucas/tmp/buf1.md', md_string, 'utf8', (err) => {
-				// 	if (err) {
-				// 		console.error('Error writing file:', err);
-				// 	} else {
-				// 		console.log('File written successfully');
-				// 	}
-				// });
-				// logToFile('Write store for bufnr ' + payload.bufnr);
 				string_stores[fn_key] = {
 					string: md_string,
 					pos: payload.pos,

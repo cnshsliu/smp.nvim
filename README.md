@@ -9,6 +9,10 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 ## Latest Update:
 
+😀😀😀 [TOC](#toc) 1. genrated TOC right in MD; 2. include TOC with {toc}
+
+😀😀😀 [Command Panel](#command-panel) with `:Smp<cr>`
+
 😀😀😀 [Break long line](#break-long-line), break long line into multiple lines
 
 😀😀😀 [Convert URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
@@ -55,7 +59,7 @@ require("smp").setup({
 
 ## Screenshots
 
-https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4
+[Error fetching title](https://user-images.githubusercontent.com/2124836/226198265-b40ac0e7-6aea-42ff-9202-438edf7b54c6.mp4)
 
 <img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
 
@@ -82,6 +86,8 @@ Besides the basic features of markdown preview, this plugin has the following:
   - [Switch browser tab automatically](#switch-browser-tab-automatically) when you switch among multiple Markdown files
   - [Convert URL into markdown link automatically](#convert-url-into-link-automatically)
   - [Break long line into multiple lines](#break-long-line)
+  - [TOC](#toc)
+  - [Command Panel](#command-panel) with `:Smp<cr>`
 
 - [Outliner (the book)](#markdown-book)
   - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
@@ -138,7 +144,7 @@ click it to jump to the note directly in the preview.
 
 A red block indicator always locates at the current line you are editting
 
-https://user-images.githubusercontent.com/2124836/226205371-b9710ad5-5480-4fc3-ba80-fef4549c9bce.mp4
+[Error fetching title](https://user-images.githubusercontent.com/2124836/226205371-b9710ad5-5480-4fc3-ba80-fef4549c9bce.mp4)
 
 If you don't like it, just disable it by including
 
@@ -300,6 +306,15 @@ require("smp").setup({
 `:SmpBreakLineIfLong 1`  
 `:SmpBreakLineIfLong 40`
 
+### Insert TOC here
+
+    `:SmpInsertTocHere`
+
+Will insert a TOC here, you can customize the TOC style by using cusotm CSS
+
+`<C-CR>` on a TOC item will jump to the corresponding header.
+press `'t` will jump back to TOC.
+
 ### Switch browser tab automatically
 
 Switch files in Neovim, browser will switch previewing tab automatically for you.
@@ -310,6 +325,25 @@ Just install a simple Edge/Chrome extension.
 you need to install it manually currently.
 
 [Download zip file](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
+
+### TOC support
+
+We support TOC in two ways:
+
+1. Generate TOC automatically, and insert it into your Markdown file.
+   `:Smp<CR>` to bring up command panel, select "insert toc here"
+2. Expand `{toc}` at previewing stage
+   Include `{toc}` in your Markdown file, and it will be expanded into TOC in previewing window
+
+### Command Panel
+
+`:Smp<cr>` will bring up all SMP commands, press enter on one of them to invoke corresponding command.
+
+You may map `:Smp<cr>` to your favorite key in "init.lua", for example:
+
+```lua
+   vim.keymap.set("n", "<leader>m", "<cmd>Smp<CR>", { silent = true })
+```
 
 ## Markdown Book
 
