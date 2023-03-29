@@ -25,7 +25,7 @@ you'd like to let browser to switch previewing tab to your current editing Markd
 
 😀😀😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files)
 
-[See more exiting features for Markdown lover...](#all-features)
+🎉🎉🎉 **[See more exiting features for Markdown lover...](#all-features)**
 
 ## Quick start with Packer
 
