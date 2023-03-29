@@ -486,7 +486,7 @@ M.get_matching_line_numbers = function(pattern)
     return matching_lines
 end
 
-lcl_get_next_snippet_matching_line = function(pattern, start_from)
+local lcl_get_next_snippet_matching_line = function(pattern, start_from)
     local num_lines = vim.api.nvim_buf_line_count(0)
 
     for i = start_from, num_lines do
@@ -825,7 +825,7 @@ M.paste_wiki_word = function()
 end
 
 local function validate_and_generate_header(line)
-    local n, text, id = line:match("^(%s*)- %[(.-)%]%((#.-)%)$")
+    local n, text, _ = line:match("^(%s*)- %[(.-)%]%((#.-)%)$")
 
     if not n then
         return nil
