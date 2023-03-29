@@ -9,6 +9,7 @@ local fn_key_map = {}
 
 local M = {}
 M.server_started = false
+local __insert_blank_line_after = -1
 
 local tmpdir
 M.snippet_pattern = "^%s*{(.-)}%s*$"
@@ -20,6 +21,21 @@ else
 end
 local logFile = vim.fn.fnamemodify(tmpdir, ":p") .. "smp_client.log"
 local _home = vim.fn.expand("~/zettelkasten")
+
+M.log = function(message)
+    local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+    local log_file = assert(io.open(logFile, "a"))
+    log_file:write(timestamp .. " - " .. message .. "\n")
+    log_file:close()
+end
+
+M.clear_log = function()
+    local file_to_clear = assert(io.open(logFile, "w"))
+    file_to_clear:close()
+end
+
+M.clear_log()
+M.log("\n")
 
 local function defaultConfig(home)
     if home == nil then
@@ -33,8 +49,59 @@ local function defaultConfig(home)
         book_use_emoji = true,
         copy_file_into_assets = true,
         show_indicator = true,
+        break_long_line_at = 80,
     }
     M.Cfg = cfg
+end
+
+local function Setup(cfg)
+    cfg = cfg or {}
+    bookutils.setup(cfg)
+    defaultConfig(cfg.home)
+    for k, v in pairs(cfg) do
+        M.Cfg[k] = v
+    end
+    todoutils.setup(M.Cfg)
+end
+
+local function _setup(cfg)
+    Setup(cfg)
+end
+M.setup = _setup
+M.setup({})
+
+local function count_chinese_characters(str)
+    local _, count = string.gsub(str, "[\228-\233][\128-\191][\128-\191]", "")
+    return count
+end
+
+local function break_string(str, limit)
+    -- Initialize an empty table to store the output strings
+    local output = {}
+    -- Initialize an empty string to store the current line
+    local line = ""
+    -- Initialize a variable to store the current line width
+    local line_width = 0
+    -- Loop through the UTF-8 byte sequences of the input string using a pattern
+    for char in str:gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+        -- Get the display width of the current character
+        local char_width = vim.fn.strdisplaywidth(char)
+        -- If adding the current character would exceed the limit of 80, append the current line to the output table and start a new line
+        if line_width + char_width > limit then
+            table.insert(output, line)
+            line = ""
+            line_width = 0
+        end
+        -- Append the current character to the current line and update the line width
+        line = line .. char
+        line_width = line_width + char_width
+    end
+    -- If there is any remaining line, append it to the output table
+    if line ~= "" then
+        table.insert(output, line)
+    end
+    -- Return the output table
+    return output
 end
 
 M.open_url = function(url)
@@ -49,18 +116,6 @@ M.open_url = function(url)
     else
         print("Unsupported operating system.")
     end
-end
-
-M.log = function(message)
-    local timestamp = os.date("%Y-%m-%d %H:%M:%S")
-    local log_file = assert(io.open(logFile, "a"))
-    log_file:write(timestamp .. " - " .. message .. "\n")
-    log_file:close()
-end
-
-M.clear_log = function()
-    local file_to_clear = assert(io.open(logFile, "w"))
-    file_to_clear:close()
 end
 
 M.post2 = function(host, port, endpoint, data)
@@ -276,7 +331,22 @@ end
 --     end
 -- end
 
+M.breakIfLong = function(limit)
+    limit = tonumber(limit) or tonumber(M.Cfg.break_long_line_at)
+    limit = limit >= 1 and limit or 1
+    local line_nr = vim.api.nvim_win_get_cursor(0)[1]
+    local line = vim.api.nvim_get_current_line()
+    local line_width = vim.fn.strdisplaywidth(line)
+    if line_width > limit then
+        local segments = break_string(line, limit)
+        vim.api.nvim_buf_set_lines(0, line_nr - 1, line_nr, false, segments)
+        return #segments
+    end
+end
+--
+
 local do_post_data_update = function()
+    __insert_blank_line_after = -1
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local pos = vim.api.nvim_win_get_cursor(0)
     local bufnr = vim.api.nvim_win_get_buf(0)
@@ -294,6 +364,7 @@ local do_post_data_update = function()
         for index, aLine in ipairs(lines) do
             local formatted_line, _ = convert_line_to_wiki_link(aLine)
             if formatted_line ~= nil then
+                __insert_blank_line_after = index
                 lines[index] = formatted_line
                 vim.api.nvim_buf_set_lines(
                     bufnr,
@@ -357,6 +428,17 @@ local do_post_data_update = function()
     -- print(string.format("%s...%s...%d", "Post", vim.inspect(pos), bufnr))
     if payload.fn then
         M.post2("127.0.0.1", 3030, "/update", payload)
+        if __insert_blank_line_after > 0 then
+            vim.api.nvim_buf_set_lines(
+                bufnr,
+                __insert_blank_line_after,
+                __insert_blank_line_after,
+                false,
+                { "" }
+            )
+            vim.api.nvim_win_set_cursor(0, { __insert_blank_line_after + 1, 0 })
+            __insert_blank_line_after = -1
+        end
     end
     -- M.log("\tPosted")
 end
@@ -724,23 +806,5 @@ end
 M.synctodo = function()
     todoutils.synctodo()
 end
-
-M.clear_log()
-M.log("\n")
-
-local function Setup(cfg)
-    cfg = cfg or {}
-    bookutils.setup(cfg)
-    defaultConfig(cfg.home)
-    for k, v in pairs(cfg) do
-        M.Cfg[k] = v
-    end
-    todoutils.setup(M.Cfg)
-end
-
-local function _setup(cfg)
-    Setup(cfg)
-end
-M.setup = _setup
 
 return M
