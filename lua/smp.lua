@@ -13,6 +13,7 @@ local Keymap = require("nui.utils.keymap")
 local vim = vim
 local lastlines = { "unset" }
 local fn_key_map = {}
+local pattern_list = "^%s*(%d|[a-z]+.)%s+.+"
 
 local M = {}
 M.server_started = false
@@ -865,6 +866,11 @@ local function pressControlReturn()
     end
 end
 
+local function get_visual_selection_range()
+    -- Check if visual mode is active
+    return vim.fn.line("v") - 1, vim.fn.line(".")
+end
+
 local function insert_empty_lines_between_nonempty_lines()
     local buf = vim.api.nvim_get_current_buf()
     local start_line, end_line
@@ -874,8 +880,12 @@ local function insert_empty_lines_between_nonempty_lines()
         or vim.fn.mode() == "V"
         or vim.fn.mode() == "<C-v>"
     then
-        start_line, end_line =
-            unpack(vim.fn.getpos("'<")[2], vim.fn.getpos("'>")[2])
+        start_line, end_line = get_visual_selection_range()
+        vim.api.nvim_feedkeys(
+            vim.api.nvim_replace_termcodes("<Esc>", true, false, true),
+            "n",
+            false
+        )
     else
         start_line, end_line = 0, -1
     end
@@ -972,6 +982,7 @@ M.command = function(subcommand)
             })
             :find()
     end
+
     if subcommand then
         -- print("trying subcommand " .. "`" .. subcommand .. "`")
         for _, entry in pairs(commands()) do
@@ -1023,6 +1034,10 @@ end
 
 Keymap.set(0, "n", "<C-CR>", function()
     pressControlReturn()
+end)
+
+Keymap.set(0, "v", "<C-CR>", function()
+    insert_empty_lines_between_nonempty_lines()
 end)
 
 return M

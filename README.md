@@ -9,7 +9,7 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 ## Latest Update:
 
-😀😀😀 [TOC](#toc) 1. genrated TOC right in MD; 2. include TOC with {toc}
+😀😀😀 [TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
 
 😀😀😀 [Command Panel](#command-panel) with `:Smp<cr>`
 
@@ -69,6 +69,7 @@ Besides the basic features of markdown preview, this plugin has the following:
 
 - [Previewer](#previewer)
 
+  - [Command Panel](#command-panel) with `:Smp<cr>`
   - [Clickable wiki links](#wiki-link-support)
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
@@ -85,9 +86,9 @@ Besides the basic features of markdown preview, this plugin has the following:
   - [Drop files from Finder into Neovim, and convert it to link automatically. ](#drop-files) 🎉
   - [Switch browser tab automatically](#switch-browser-tab-automatically) when you switch among multiple Markdown files
   - [Convert URL into markdown link automatically](#convert-url-into-link-automatically)
-  - [Break long line into multiple lines](#break-long-line)
-  - [TOC](#toc)
-  - [Command Panel](#command-panel) with `:Smp<cr>`
+  - [TOC](#toc-support)
+  - [Break long line into multiple lines](#break-long-line-into-multiple-line)
+  - [Insert blank lines between lines](#insert-blank-lines-between-lines)
 
 - [Outliner (the book)](#markdown-book)
   - [Show Book in a standalone buffer](#markdown-book) `:SmpBook`
@@ -306,14 +307,16 @@ require("smp").setup({
 `:SmpBreakLineIfLong 1`  
 `:SmpBreakLineIfLong 40`
 
-### Insert TOC here
+### Insert blank lines between lines
 
-    `:SmpInsertTocHere`
+Select multiple lines, press `<C-CR>` to insert blank lines between lines.
 
-Will insert a TOC here, you can customize the TOC style by using cusotm CSS
+Sometime, we may paste text from elsewhere into neovim,
+and there is only 'carriage return' but no blank lines
+between texts, in Markdown preview, all text will be
+concatenated into one line, no paragraph, this is not what we want.
 
-`<C-CR>` on a TOC item will jump to the corresponding header.
-press `'t` will jump back to TOC.
+By inserting blank lines, we see paragraphs in preview.
 
 ### Switch browser tab automatically
 
@@ -332,6 +335,8 @@ We support TOC in two ways:
 
 1. Generate TOC automatically, and insert it into your Markdown file.
    `:Smp<CR>` to bring up command panel, select "insert toc here"
+   `<C-CR>` on a TOC item will jump to the corresponding header.
+   press `'t` will jump back to TOC.
 2. Expand `{toc}` at previewing stage
    Include `{toc}` in your Markdown file, and it will be expanded into TOC in previewing window
 
