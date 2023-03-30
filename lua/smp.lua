@@ -13,7 +13,6 @@ local Keymap = require("nui.utils.keymap")
 local vim = vim
 local lastlines = { "unset" }
 local fn_key_map = {}
-local pattern_list = "^%s*(%d|[a-z]+.)%s+.+"
 
 local M = {}
 M.server_started = false
