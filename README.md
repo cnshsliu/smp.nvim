@@ -452,6 +452,8 @@ in the dependency list of this plugin.
 
 ### Mappings
 
+deprecated, use `:Smp` command to bring up command palette instead.
+
 ```lua
     vim.keymap.set("n", "<leader>kt", ":lua require('smp').wrapwiki_visual()<CR>")
     vim.keymap.set("v", "<leader>kv", ":lua require('smp').wrapwiki_visual()<CR>")
