@@ -23,7 +23,7 @@ You may be editing several Markdown files in NeoVim at the same time,
 when you switch from one file to another,
 you'd like to let browser to switch previewing tab to your current editing Markdown.
 
-😀😀😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files)
+😀😀😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files), this one is very useful for me, I can use it to manage files on local disk, or.... drag files from IM group other people sent into Markdown.
 
 🎉🎉🎉 **[See more exiting features for Markdown lover...](#all-features)**
 
