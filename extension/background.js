@@ -1,7 +1,7 @@
 function change_preview_tab_to(url) {
 	let should_change = false;
 	chrome.tabs.query(
-		{ active: true, currentWindow: true, url: 'http://127.0.0.1:3030/preview/*' },
+		{ active: true, currentWindow: true, url: 'http://127.0.0.1:3030/preview?fn_key=*' },
 		function (tabs) {
 			if (tabs.length > 0) {
 				var tab = tabs[0];
@@ -33,7 +33,7 @@ function get_fn_key() {
 		.then((data) => {
 			console.log(data.fn_key);
 			if (data.fn_key) {
-				let url = 'http://127.0.0.1:3030/preview/' + data.fn_key;
+				let url = 'http://127.0.0.1:3030/preview?fn_key=' + data.fn_key;
 				change_preview_tab_to(url);
 			}
 		})

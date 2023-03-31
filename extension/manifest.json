@@ -3,8 +3,10 @@
 	"version": "1.0",
 	"description": "NeoVim smp.nvim plugin companion by Liukehong",
 	"manifest_version": 3,
-	"permissions": ["tabs", "activeTab", "http://*/*", "https://*/*"],
+	"permissions": ["tabs", "activeTab"],
+	"host_permissions": ["http://127.0.0.1:3030/*"],
+	"optional_host_permissions": ["https://*/*", "http://*/*"],
 	"background": {
-		"service-worker": ["background.js"]
+		"service_worker": "background.js"
 	}
 }
