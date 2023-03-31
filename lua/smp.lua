@@ -107,12 +107,12 @@ end
 
 local __open_url = function(url)
     if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
-        vim.fn.system("start " .. url)
+        vim.fn.system(string.format("start '%s'", url))
     elseif vim.fn.has("unix") == 1 then
         if vim.fn.has("mac") == 1 then
-            vim.fn.system("open " .. url)
+            vim.fn.system(string.format("open '%s'", url))
         else
-            vim.fn.system("xdg-open " .. url)
+            vim.fn.system(string.format("xdg-open '%s'", url))
         end
     else
         print("Unsupported operating system.")
@@ -254,6 +254,18 @@ local concat_file_path = function(folder, filename)
     return full_path
 end
 
+local function urlEncode(s)
+    local function charToHex(c)
+        return string.format("%%%02X", string.byte(c))
+    end
+
+    return s:gsub("([^%w %-%_%.%~])", charToHex):gsub(" ", "+")
+end
+
+local filePath = "C:\\Users\\Example\\Documents\\file.txt"
+local escapedString = urlEncode(filePath)
+print(escapedString) -- Output: C%3A%5CUsers%5CExample%5CDocuments%5Cfile.txt
+
 local generate_short_uuid = function()
     local template = "xxxxxxxxxxxxx"
     local uuid = ""
@@ -285,7 +297,37 @@ local is_valid_url = function(url)
     return url:match(pattern) ~= nil
 end
 
-local convert_line_to_wiki_link = function(line)
+local function make_relative_to(A, B)
+    local function split_path(path)
+        local parts = {}
+        for part in path:gmatch("[^/\\]+") do
+            table.insert(parts, part)
+        end
+        return parts
+    end
+
+    local function join_path(parts)
+        return table.concat(parts, "/")
+    end
+
+    local partsA = split_path(A)
+    local partsB = split_path(B)
+    local common_parts = {}
+
+    while partsA[1] == partsB[1] do
+        table.insert(common_parts, partsA[1])
+        table.remove(partsA, 1)
+        table.remove(partsB, 1)
+    end
+
+    for _ = 1, #partsA - 1 do
+        table.insert(partsB, 1, "..")
+    end
+
+    return join_path(partsB)
+end
+
+local convert_line_to_wiki_link = function(line, current_file_path)
     local formatted_line = nil
     local linkType = ""
 
@@ -302,7 +344,8 @@ local convert_line_to_wiki_link = function(line)
             .. "."
             .. suffix
         local new_file_path = concat_file_path(M.Cfg.home, file_in_assets)
-        local display_path = "/SMP_MD_HOME/" .. file_in_assets
+        -- local display_path = "/SMP_MD_HOME/" .. file_in_assets
+        local display_path = make_relative_to(current_file_path, new_file_path)
         local mkdirCmd = 'mkdir -p $(dirname "' .. new_file_path .. '")'
         os.execute(mkdirCmd)
         local cpCmd = 'cp "' .. file_path .. '" "' .. new_file_path .. '"'
@@ -389,7 +432,8 @@ local do_post_data_update = function()
     --convert file path to link
     if M.Cfg.copy_file_into_assets then
         for index, aLine in ipairs(lines) do
-            local formatted_line, _ = convert_line_to_wiki_link(aLine)
+            local formatted_line, _ =
+                convert_line_to_wiki_link(aLine, file_path)
             if formatted_line ~= nil then
                 __insert_blank_line_after = index
                 lines[index] = formatted_line
@@ -438,7 +482,8 @@ local do_post_data_update = function()
     end
     local fn_key = fn_key_map[fn]
     if fn_key == nil then
-        fn_key = generate_short_uuid()
+        -- fn_key = generate_short_uuid()
+        fn_key = urlEncode(fn)
         if fn then
             fn_key_map[fn] = fn_key
         end
@@ -644,9 +689,12 @@ M.start = function(openBrowserAfterStart)
             internal_log(string.format("Got fn_key for %s, got %s", fn, fn_key))
             local function open_browser()
                 internal_log("Open browser now")
-                __open_url(
-                    string.format("http://127.0.0.1:3030/preview/%s", fn_key)
+                local preview_url = string.format(
+                    "http://127.0.0.1:3030/preview?fn_key=%s",
+                    fn_key
                 )
+                print(preview_url)
+                __open_url(preview_url)
             end
             if openBrowserAfterStart then
                 vim.defer_fn(open_browser, 300)
@@ -697,7 +745,9 @@ M.preview = function()
     local fn = vim.fn.expand(file_path)
     local fn_key = fn_key_map[fn]
     local function open_browser()
-        __open_url(string.format("http://127.0.0.1:3030/preview/%s", fn_key))
+        __open_url(
+            string.format("http://127.0.0.1:3030/preview?fn_key=%s", fn_key)
+        )
     end
     vim.defer_fn(open_browser, 300)
 end

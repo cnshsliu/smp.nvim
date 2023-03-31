@@ -2,12 +2,25 @@
 const marked = require('marked');
 const katex = require('katex');
 const path = require('path');
+const mime = require('mime-types');
 const Hapi = require('@hapi/hapi');
 const Wreck = require('@hapi/wreck');
 const Cheerio = require('cheerio');
 const fs = require('fs');
 const plantumlEncoder = require('plantuml-encoder');
 
+const regex_wiki = /\[\[(.*?)\]\]/g;
+const regex_snippet = /^\s*{(.+)}\s*$/;
+const regex_toc = /\{(:)?(toc|TOC|Toc)\}/;
+const regex_link = /\[(.*)]\s*\((.+)\)/;
+
+let string_stores = {};
+let update_key_stores = {};
+let fn_stores = {};
+
+let serNumber = 0;
+
+const logFile = 'smp_server_log.txt';
 let current_fn_key = '';
 let global_indicator = -1;
 const defaultMarkDownCss = '/styles/github-markdown.css';
@@ -15,6 +28,19 @@ const smpConfig = {
 	css: defaultMarkDownCss,
 };
 
+function findKeyByValue(obj, value) {
+	const foundKey = Object.keys(obj).find((key) => obj[key] === value);
+	return foundKey;
+}
+function ensureAbsolutePath(inputPath, currentFilePath) {
+	if (path.isAbsolute(inputPath)) {
+		return inputPath;
+	} else {
+		const currentDir = path.dirname(currentFilePath); // Get the current file's directory
+		const absolutePath = path.join(currentDir, inputPath); // Create an absolute path relative to the current file's directory
+		return absolutePath;
+	}
+}
 const smp_links = {};
 function generateRandomString(length) {
 	let result = '';
@@ -27,14 +53,13 @@ function generateRandomString(length) {
 }
 
 //katex version: https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css
-const getStylesheet = function (fn_key) {
+const getStylesheet = function () {
 	const stylesheet = `
   <link rel="stylesheet" href="${smpConfig.css}" type="text/css">
 	<link rel="stylesheet" href="/styles/highlight-github.css" type="text/css">
 	<link rel="stylesheet" href="/styles/smp.css" type="text/css">
   <link rel="stylesheet" href="/styles/katex.min.css">
   <script src="/diffdom/diffDOM.js"></script>
-  <script>const myFnKey="${fn_key}";</script>
 
 	
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -66,7 +91,7 @@ const getStylesheet = function (fn_key) {
 };
 
 //insert this script into the html ONCE
-const getSmoothScrollScript = function (fn_key, lnr, thisline, showIndicator = true) {
+const getSmoothScrollScript = function (update_key, lnr, thisline, showIndicator = true) {
 	thisline = thisline.replace(/`/g, '\\`');
 	return `
   <script type="module">
@@ -133,7 +158,7 @@ let fetchFailed = 0;
 let intervalId=0;
 const dd = new diffDOM.DiffDOM();
 function fetchData() {
-    let url = "http://127.0.0.1:3030/getupdate/${fn_key}/" + thisTs;
+    let url = "http://127.0.0.1:3030/getupdate/${update_key}/" + thisTs;
     lastTs = thisTs;
     fetch(url)
       .then((response) => {
@@ -190,19 +215,6 @@ intervalId = setInterval(fetchData, 500);
 </script>
   `.replace(/\n/g, '');
 };
-
-const inputString = 'The file is [[example.txt]], and this is [[example2]]';
-const regex_wiki = /\[\[(.*?)\]\]/g;
-const regex_snippet = /^\s*{(.+)}\s*$/;
-const regex_toc = /\{(:)?(toc|TOC|Toc)\}/;
-const regex_link = /\[(.*)]\s*\((.+)\)/;
-
-let string_stores = {};
-let fn_stores = {};
-let buf_session = {};
-let serNumber = 0;
-
-const logFile = 'smp_server_log.txt';
 
 function logToFile(...msgs) {
 	const timestamp = new Date().toISOString();
@@ -339,6 +351,65 @@ const indicator = function (lnr, scroll = true) {
 	return `<span class="${scroll ? 'scrollto' : ''} lucas_tkbp_${lnr + 1}">&nbsp;</span>`;
 };
 
+function patchAllLines(lines, dir_of_current_md, md_fn) {
+	let codeStart = -1;
+	let codeEnd = -1;
+	let patched = [];
+	let pure = [];
+	for (let i = 0; i < lines.length; i++) {
+		let x = lines[i];
+		pure.push(x);
+		patched.push(patchLine(lines, lines[i], i, dir_of_current_md, md_fn, true));
+
+		//a code block start， at the end of code block,
+		//will revert any line patch, and use the original line
+		//this is to avoid the line number in code block is changed
+		//which will cause the line number in the code block is not correct
+		//when the code block is rendered by marked
+		//the code block is identified by ``` at the start and end of the block
+		//the code block can be identified by the language name, e.g. ```js
+		//if the code block is not identified by language name, it is treated as pure text
+		if (x.match(/^\s*`/)) {
+			if (codeStart < 0) {
+				codeStart = i;
+				let match = x.match(/```(\w*)/);
+				if (match) {
+					codeLang = match[1];
+				} else {
+					codeLang = '';
+				}
+			} else codeEnd = i;
+			if (codeEnd > 0) {
+				for (let j = codeStart; j <= codeEnd; j++) {
+					patched[j] = pure[j];
+				}
+				//if its a supported codeLang, we will insert a indicator
+				//to indicate the start and end of the code block
+				if (imagelizedLang.indexOf(codeLang) >= 0) {
+					//for imagelized text, no auto scroll
+					//Befote the code start
+					//insert a indicator after a new line mark
+					patched[codeStart] = '&nbsp;' + indicator(codeStart, true) + '\n' + patched[codeStart];
+
+					//For those markdown lines which will be converted
+					//into a picture, we insert patch, only used for highlight
+					//without scroll to it,
+					//Why do we need no-scroll-to location? because if you are
+					//editing a imagelizable mardown section which have many lines
+					//or when you move cursor within this area
+					//the browser will jump to this location
+					//make your editing experience unstable.
+					patched[codeEnd] += '\n&nbsp;' + indicator(codeStart + 1, false);
+				}
+				codeStart = -1;
+				codeEnd = -1;
+				codeLang = '';
+			}
+		}
+	}
+	return patched;
+}
+
 const generateTOC = function (markdownLines) {
 	const toc = [];
 	const headerRegex = /^(#{1,6})\s+(.+)$/;
@@ -386,7 +457,7 @@ const generateTOCHTML = function (toc) {
 	return html;
 };
 
-const patchLine = (allLines, line, lnr, dir_of_current_md, appendIndicator = true) => {
+const patchLine = (allLines, line, lnr, dir_of_current_md, md_fn, appendIndicator = true) => {
 	//
 	//Reference , don't touch
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
@@ -444,15 +515,10 @@ const patchLine = (allLines, line, lnr, dir_of_current_md, appendIndicator = tru
 			// const fileName = path.basename(p1);
 			const fileExists = fs.existsSync(fullPath);
 			if (fileExists) {
-				let mySer = serNumber;
-				let myKey = getKeyByValue(fn_stores, fullPath);
-				if (!myKey) {
-					myKey = `fn_${mySer}`;
-					serNumber = serNumber + 1;
-					fn_stores[myKey] = fullPath;
-				}
+				// let myKey = getKeyByValue(fn_stores, fullPath);
+				let myKey = encodeURIComponent(fullPath);
 				//Give it 'zettel' class, so the display style of zettel can be easily customized later
-				return `<span class="zettel"><a href="/zettel/${myKey}">${p1}</a></span>`;
+				return `<span class="zettel"><a href="/zettel?path=${myKey}">${p1}</a></span>`;
 			} else {
 				//also highlight missing zettel file
 				return `<span class="notfound">${p1}</span>`;
@@ -472,10 +538,8 @@ const patchLine = (allLines, line, lnr, dir_of_current_md, appendIndicator = tru
 			} else {
 				//if a wiki style link to a local file
 				//convert it to SMP_LINK handler
-				let fn = path.resolve(dir_of_current_md, p2);
-				let linkId = generateRandomString(20);
-				smp_links[linkId] = fn;
-				return `[${p1}](/SMP_LINK/${linkId})`;
+				const fullpath = path.resolve(dir_of_current_md, p2);
+				return `[${p1}](/zettel?path=${encodeURIComponent(fullpath)})`;
 			}
 		});
 		// logToFile(`Replace [${line}] to [${outputString}]`);
@@ -552,22 +616,23 @@ const init = async () => {
 	});
 	server.route({
 		method: 'GET',
-		path: '/preview/{fn_key}',
+		path: '/preview',
 		handler: (request, h) => {
-			let fn_key = request.params.fn_key;
+			let fn_key = request.query.fn_key;
+			let update_key = findKeyByValue(update_key_stores, fn_key);
 			let md_cache = string_stores[fn_key];
 			if (md_cache) {
-				const data = marked.parse(md_cache.string);
+				const html = marked.parse(md_cache.string);
 				const resp_html =
 					'<head>' +
-					getStylesheet(fn_key) +
+					getStylesheet() +
 					'</head>' +
 					indicator(-1) +
 					'<article class="markdown-body">\n' +
-					data +
+					html +
 					'</article>' +
 					getSmoothScrollScript(
-						fn_key,
+						update_key,
 						md_cache.pos[0],
 						md_cache.thisline.trim(),
 						global_indicator < 0 ? smpConfig.show_indicator : global_indicator === 0 ? false : true,
@@ -587,40 +652,20 @@ const init = async () => {
 	}
 	server.route({
 		method: 'GET',
-		path: '/SMP_LINK/{fn}',
-		handler: (request, h) => {
-			let fn = smp_links[request.params.fn];
-			if (fn.indexOf('/SMP_MD_HOME') >= 0) {
-				fn = replacePath(fn, smpConfig.home);
-			}
-			return h.file(fn, { confine: false });
-		},
-	});
-	server.route({
-		method: 'GET',
-		//this pattern pattern is generated by marked from a [[wikilink]]
-		path: '/SMP_MD_HOME/assets/{fn}',
-		handler: (request, h) => {
-			let fn = path.join(smpConfig.home, 'assets', request.params.fn);
-			logToFile('get ' + fn);
-			return h.file(fn, { confine: false });
-		},
-	});
-	server.route({
-		method: 'GET',
 		path: '/get_fn_key',
 		handler: (_, h) => {
-			return h.response({ fn_key: current_fn_key });
+			return h.response({ fn_key: encodeURIComponent(current_fn_key) });
 		},
 	});
 	server.route({
 		method: 'GET',
-		path: '/getupdate/{fn_key}/{ts}',
+		path: '/getupdate/{update_key}/{ts}',
 		handler: (request, h) => {
-			let { fn_key, ts } = request.params;
+			let { update_key, ts } = request.params;
 			function getResponse() {
 				let use_indicator =
 					global_indicator < 0 ? smpConfig.show_indicator : global_indicator === 0 ? false : true;
+				let fn_key = update_key_stores[update_key];
 				let md_cache = string_stores[fn_key];
 				if (md_cache) {
 					if (md_cache.ts !== Number(ts)) {
@@ -663,21 +708,58 @@ const init = async () => {
 	server.route({
 		method: 'GET',
 		//this path pattern is generated from Wiki Link: [[myKey]]
-		path: '/zettel/{myKey}',
+		path: '/zettel',
 		handler: (request, h) => {
 			// Compile
-			let fn = fn_stores[request.params.myKey];
+			// let fn = fn_stores[request.query.myKey];
+			let fn = request.query.path;
+			//fn = replacePath(fn, smpConfig.home);
 			logToFile('zettel: ' + fn);
 			const fileExists = fs.existsSync(fn);
-			if (fileExists) {
-				let dir_of_current_md = path.dirname(fn);
-				let md = fs.readFileSync(fn, 'utf8');
-				md = patchLine([md], md, 0, dir_of_current_md, false);
-				const data = marked.parse(md);
+			function isMarkdownFile(filePath) {
+				const fileExtension = filePath.split('.').pop();
+				return fileExtension === 'md';
+			}
+			function getDispositionType(fileName) {
+				// Specify file types that can be displayed inline in the browser
+				const inlineFileTypes = ['png', 'jpeg', 'jpg', 'pdf', 'gif', 'svg', 'webp', 'bmp'];
 
-				return h.response(
-					getStylesheet() + '<article class="markdown-body">' + data + '</article>',
-				);
+				const contentType = mime.lookup(fileName);
+				const fileExtension = mime.extension(contentType);
+
+				// Check if the file extension is in the list of inline file types
+				if (fileExtension && inlineFileTypes.includes(fileExtension)) {
+					return 'inline';
+				} else {
+					return 'attachment';
+				}
+			}
+			if (fileExists) {
+				if (!isMarkdownFile(fn)) {
+					const fileName = path.basename(fn);
+					const encodedFileName = encodeURIComponent(fileName);
+					return h
+						.file(fn, { confine: false })
+						.header('Content-Type', mime.lookup(fileName))
+						.header(
+							'Content-Disposition',
+							`${getDispositionType(fileName)}; filename*=UTF-8''${encodedFileName}`,
+						);
+				} else {
+					const content = fs.readFileSync(fn, 'utf8');
+					const lines = content.split(/\r?\n/);
+					const patched = patchAllLines(lines, path.dirname(fn), fn);
+					const md_string = patched.join('\n');
+					const html = marked.parse(md_string);
+
+					return h.response(
+						getStylesheet() +
+							'<article class="markdown-body">' +
+							html +
+							'</article>' +
+							`<center><br/><br/>generated by <a href="https://github.com/cnshsliu/smp.nvim">smp.nvim</a>, created by <a href="https://www.buymeacoffee.com/liukehong">LiuKeHong</a> </center>`,
+					);
+				}
 			} else {
 				return h.response(
 					'Not found. <br/>You may edit your MD normally, and refresh this page later.',
@@ -726,10 +808,6 @@ const init = async () => {
 		handler: (request, h) => {
 			let payload = request.payload;
 			let fn = payload.fn;
-			let codeStart = -1;
-			let codeEnd = -1;
-			let patched = [];
-			let pure = [];
 			let lines = payload.lines;
 			let fn_key = payload.fn_key;
 			if (!fn_key || !fn) {
@@ -737,62 +815,15 @@ const init = async () => {
 				logToFile('fn_key is undefined, bypass update ' + JSON.stringify(payload));
 				return h.response('fn_key is undefined, bypass update');
 			}
-			let dir_of_current_md = path.dirname(fn);
+			fn_key = decodeURIComponent(fn_key);
+			let update_key = findKeyByValue(update_key_stores, fn_key);
+			if (!update_key) {
+				update_key_stores[generateRandomString(16)] = fn_key;
+			}
 			let codeLang = '';
 			if (lines.length > 0 && lines[0] !== 'NO_CHANGE') {
 				//update content
-				for (let i = 0; i < lines.length; i++) {
-					let x = lines[i];
-					pure.push(x);
-					patched.push(patchLine(lines, lines[i], i, dir_of_current_md, true));
-
-					//a code block start， at the end of code block,
-					//will revert any line patch, and use the original line
-					//this is to avoid the line number in code block is changed
-					//which will cause the line number in the code block is not correct
-					//when the code block is rendered by marked
-					//the code block is identified by ``` at the start and end of the block
-					//the code block can be identified by the language name, e.g. ```js
-					//if the code block is not identified by language name, it is treated as pure text
-					if (x.match(/^\s*`/)) {
-						if (codeStart < 0) {
-							codeStart = i;
-							let match = x.match(/```(\w*)/);
-							if (match) {
-								codeLang = match[1];
-							} else {
-								codeLang = '';
-							}
-						} else codeEnd = i;
-						if (codeEnd > 0) {
-							for (let j = codeStart; j <= codeEnd; j++) {
-								patched[j] = pure[j];
-							}
-							//if its a supported codeLang, we will insert a indicator
-							//to indicate the start and end of the code block
-							if (imagelizedLang.indexOf(codeLang) >= 0) {
-								//for imagelized text, no auto scroll
-								//Befote the code start
-								//insert a indicator after a new line mark
-								patched[codeStart] =
-									'&nbsp;' + indicator(codeStart, true) + '\n' + patched[codeStart];
-
-								//For those markdown lines which will be converted
-								//into a picture, we insert patch, only used for highlight
-								//without scroll to it,
-								//Why do we need no-scroll-to location? because if you are
-								//editing a imagelizable mardown section which have many lines
-								//or when you move cursor within this area
-								//the browser will jump to this location
-								//make your editing experience unstable.
-								patched[codeEnd] += '\n&nbsp;' + indicator(codeStart + 1, false);
-							}
-							codeStart = -1;
-							codeEnd = -1;
-							codeLang = '';
-						}
-					}
-				}
+				let patched = patchAllLines(lines, path.dirname(fn), fn);
 				let md_string = patched.join('\n');
 				string_stores[fn_key] = {
 					string: md_string,
