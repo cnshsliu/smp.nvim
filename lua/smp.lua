@@ -44,6 +44,9 @@ end
 internal_clear_log()
 internal_log("\n")
 
+local function command_exists(command)
+    return vim.fn.executable(command) == 1
+end
 local function defaultConfig(home)
     if home == nil then
         home = _home
@@ -682,6 +685,10 @@ M.start = function(openBrowserAfterStart)
             local file_path = vim.api.nvim_buf_get_name(bufnr)
             local fn = vim.fn.expand(file_path)
             lastlines[lastlines_key] = nil
+            if not command_exists("curl") then
+                print("Please install curl to use this plugin.")
+                return
+            end
             do_post_smp_config()
             do_post_data_update()
             -- open browser here
@@ -734,6 +741,10 @@ end
 M.preview = function()
     if M.server_started == false then
         M.start(true)
+        return
+    end
+    if not command_exists("curl") then
+        print("Please install curl to use this plugin.")
         return
     end
     local bufnr = vim.api.nvim_win_get_buf(0)
