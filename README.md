@@ -27,6 +27,8 @@ you'd like to let browser to switch previewing tab to your current editing Markd
 
 🎉🎉🎉 **[See more exiting features for Markdown lover...](#all-features)**
 
+Or, [take a look at what commands we have](#all-commands), you will have a quick glance of what this plugin can do:
+
 ## Quick start with Packer
 
 ```lua
@@ -108,7 +110,7 @@ Besides the basic features of markdown preview, this plugin has the following:
 - [Getting started](#getting-started)
   - [Installation](#installation)
   - [Preview Markdown](#preview-markdown)
-  - [Key mappings](#mappings)
+  - [All commands](#all-commands)
 - [Need your helps](#ask-for-your-help)
 - [Others](#others)
 
@@ -450,29 +452,59 @@ as well. you don't have to close it manually.
 The background service is written with Node.js, that's why Node.js is
 in the dependency list of this plugin.
 
-### Mappings
+### All Commands
 
-deprecated, use `:Smp` command to bring up command palette instead.
+`require('smp').preview()`: "preview current markdown file"
 
-```lua
-    vim.keymap.set("n", "<leader>kt", ":lua require('smp').wrapwiki_visual()<CR>")
-    vim.keymap.set("v", "<leader>kv", ":lua require('smp').wrapwiki_visual()<CR>")
-    vim.keymap.set("n", "<leader>kw", ":lua require('smp').wrapwiki_word()<CR>")
-    vim.keymap.set("n", "<leader>kl", ":lua require('smp').wrapwiki_line()<CR>")
-    vim.keymap.set("n", "<leader>k1", "<cmd>SmpPasteUrl<CR>")
-    vim.keymap.set("n", "<leader>k2", "<cmd>SmpPasteWikiWord<CR>")
-```
+`require('smp').book()`: "open the markdown book in a splitted window on right"
 
-Explains:
+`require('smp').synctodo()`: "Sync all todos in Markdown to MacOS Reminder"
 
-1. `<leader>kt`, `<leader>kv`: wrap the selected text as a wiki link
-2. `<leader>kw`: wrap the word under cursor as a wiki link
-3. `<leader>kl`: wrap the current line as a wiki link
-4. `<leader>k1`: paste url string in system clipboard as a Markdown link
-5. `<leader>k2`: paste text in system clipboard as a wiki link in double square brackets.
+`require('smp').expand_snippet()`: "Expand current snippet in place"
 
-paste URL is specially useful when you are browsing and want to copy the
-web page url from browser and insert it into your note.
+`require('smp').expand_all_snippets()`: "Expand all snippets in place"
+
+`require('smp').breakIfLong()`: "Break line length if it's too long for easier editting"
+
+`require('smp').insert_blank_line()`: "Insert blank lines between multiple lines of text"
+
+`require('smp').bookthis()`: "Show book of this markdown file"
+
+`require('smp').search_text()`: "Incremental search all markdown files by content"
+
+`require('smp').search_tag()`: "Incremental search all markdown files by tags"
+
+`require('smp').insert_toc_here()`: "Insert TOC here"
+
+`require('smp').indicator_on()`: "Show current line indicator in previewer"
+
+`require('smp').indicator_off()`: "Don't show line indicator in previewer"
+
+`require('smp').indicator_as_config()`: "Show line indicator in previewer as configured"
+
+`require('smp').wrapwiki_visual()`: "Wrap selected text into a wiki link"
+
+`require('smp').wrapwiki_word()`: "Wrap word under cursor into a wiki link"
+
+`require('smp').wrapwiki_line()`: "Wrap current line into a wiki link"
+
+`require('smp').paste_url()`: "Paste url from clipboard into a link"
+
+`require('smp').paste_wiki_word()`: "Paste word from clipboard into a link"
+
+`require('smp').open_file_in_this_line()`: "System open the linked file in this line"
+
+`require('smp').locate_file_in_this_line()`: "System locate the linked file in this line"
+
+`require('smp').gotoHeaderFromTocEntry()`: "Jump to header from TOC entry"
+
+`require('smp').start()`: "Start background server"
+
+`require('smp').stop()`: "Stop background server"
+
+### Keymaps
+
+`:Smp` will bring up a command palette with all these commands. You can also map them to your own keys.
 
 ## Contributing
 
