@@ -108,7 +108,53 @@ local function break_string(str, limit)
     return output
 end
 
-local __open_url = function(url)
+local function resolve_link_path(current_file_path, link_string)
+    -- Extract the link path from the markdown link string
+    local _, link_path = link_string:match("%[(.-)%]%((.-)%)")
+    if link_path == nil then
+        return nil
+    end
+
+    print(vim.inspect(link_path))
+    -- Check if the link path is a URL
+    if link_path:match("^(http://)") or link_path:match("^(https://)") then
+        return "URL", link_path
+    end
+
+    -- Check if the link path is an absolute path
+    if link_path:sub(1, 1) == "/" then
+        return "FILE", link_path
+    else
+        -- Get the directory of the current markdown file
+        local current_file_dir = current_file_path:match("^(.+)/[^/]+$")
+
+        -- Resolve the link path against the current file's directory
+        local function resolve_parts(parts)
+            local resolved = {}
+            for _, part in ipairs(parts) do
+                if part == ".." then
+                    table.remove(resolved)
+                elseif part ~= "." then
+                    table.insert(resolved, part)
+                end
+            end
+            return resolved
+        end
+
+        local combined_path = current_file_dir .. "/" .. link_path
+        local parts = {}
+        for part in combined_path:gmatch("[^/]+") do
+            table.insert(parts, part)
+        end
+
+        local resolved_parts = resolve_parts(parts)
+        local resolved_path = "/" .. table.concat(resolved_parts, "/")
+
+        return "FILE", resolved_path
+    end
+end
+
+local __open_resource = function(url)
     if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
         vim.fn.system(string.format("start '%s'", url))
     elseif vim.fn.has("unix") == 1 then
@@ -121,6 +167,44 @@ local __open_url = function(url)
         print("Unsupported operating system.")
     end
 end
+
+local __locate_resource = function(url)
+    if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
+        vim.fn.system(string.format("explorer /select '%s'", url))
+    elseif vim.fn.has("unix") == 1 then
+        if vim.fn.has("mac") == 1 then
+            vim.fn.system(string.format("open -R '%s'", url))
+        elseif os.getenv("XDG_CURRENT_DESKTOP") == "GNOME" then -- GNOME (Nautilus)
+            vim.fn.system('nautilus --select "' .. url .. '"')
+        elseif os.getenv("XDG_CURRENT_DESKTOP") == "KDE" then -- KDE (Dolphin)
+            vim.fn.system('dolphin --select "' .. url .. '"')
+        elseif os.getenv("XDG_CURRENT_DESKTOP") == "XFCE" then -- XFCE (Thunar)
+            vim.fn.system('thunar --select "' .. url .. '"')
+        else
+            print("Unsupported operating system.")
+        end
+    end
+end
+
+local __open_file_in_current_line = function()
+    local line = vim.api.nvim_get_current_line()
+    local this_file_name = vim.fn.expand("%:p")
+    local _, path = resolve_link_path(this_file_name, line)
+    __open_resource(path)
+end
+local __locate_file_in_current_line = function()
+    local line = vim.api.nvim_get_current_line()
+    local this_file_name = vim.fn.expand("%:p")
+    local file_or_url, path = resolve_link_path(this_file_name, line)
+    if file_or_url == "FILE" then
+        __locate_resource(path)
+    else
+        __open_resource(path)
+    end
+end
+
+M.open_file_in_this_line = __open_file_in_current_line
+M.locate_file_in_this_line = __locate_file_in_current_line
 
 local __post2 = function(host, port, endpoint, data)
     local url = string.format("http://%s:%d%s", host, port, endpoint)
@@ -264,10 +348,6 @@ local function urlEncode(s)
 
     return s:gsub("([^%w %-%_%.%~])", charToHex):gsub(" ", "+")
 end
-
-local filePath = "C:\\Users\\Example\\Documents\\file.txt"
-local escapedString = urlEncode(filePath)
-print(escapedString) -- Output: C%3A%5CUsers%5CExample%5CDocuments%5Cfile.txt
 
 local generate_short_uuid = function()
     local template = "xxxxxxxxxxxxx"
@@ -700,8 +780,7 @@ M.start = function(openBrowserAfterStart)
                     "http://127.0.0.1:3030/preview?fn_key=%s",
                     fn_key
                 )
-                print(preview_url)
-                __open_url(preview_url)
+                __open_resource(preview_url)
             end
             if openBrowserAfterStart then
                 vim.defer_fn(open_browser, 300)
@@ -756,7 +835,7 @@ M.preview = function()
     local fn = vim.fn.expand(file_path)
     local fn_key = fn_key_map[fn]
     local function open_browser()
-        __open_url(
+        __open_resource(
             string.format("http://127.0.0.1:3030/preview?fn_key=%s", fn_key)
         )
     end
@@ -999,6 +1078,16 @@ local commands = function()
         { "wrap line as wiki", "wrap_wiki_line", M.wrapwiki_line },
         { "paste url", "paste_url", M.paste_url },
         { "paste wiki word", "paste_wiki_word", M.paste_wiki_word },
+        {
+            "open file in this line",
+            "open_file_in_this_line",
+            M.open_file_in_this_line,
+        },
+        {
+            "locate file in this line",
+            "locate_file_in_this_line",
+            M.locate_file_in_this_line,
+        },
         {
             "goto header from this TOC entry",
             "goto_header_from_toc_entry",
