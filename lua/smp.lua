@@ -910,16 +910,24 @@ M.wrapwiki_word = function()
 end
 
 M.wrapwiki_line = function()
+    local function replace_pattern(str, prefix, suffix)
+        local new_str = string.gsub(str, "(#*) (.+)", function(hash, word)
+            return hash .. " " .. prefix .. word .. suffix
+        end)
+        if new_str == str then
+            new_str = prefix .. str .. suffix
+        end
+        return new_str
+    end
     local function wrap_current_line(prefix, suffix)
         -- Get the current line number
         local line_num = vim.fn.line(".")
 
         -- Get the entire line content
-        local line_content =
-            vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]
-
+        local line_content = vim.api.nvim_get_current_line()
+        -- vim.api.nvim_buf_get_lines(0, line_num - 1, line_num, false)[1]
         -- Create the new wrapped line content
-        local wrapped_line = prefix .. line_content .. suffix
+        local wrapped_line = replace_pattern(line_content, prefix, suffix)
 
         -- Replace the current line with the wrapped content
         vim.api.nvim_buf_set_lines(
