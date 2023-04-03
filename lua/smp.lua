@@ -826,10 +826,12 @@ M.stop = function()
 end
 
 M.preview = function()
+    do_post_smp_config()
     if M.server_started == false then
         M.start(true)
         return
     end
+    do_post_data_update()
     if not command_exists("curl") then
         print("Please install curl to use this plugin.")
         return
