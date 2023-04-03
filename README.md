@@ -9,6 +9,8 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 ## Latest Update:
 
+😀😀😀 __Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B,  4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself__
+
 😀😀😀 [TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
 
 😀😀😀 [Command Panel](#command-panel) with `:Smp<cr>`
