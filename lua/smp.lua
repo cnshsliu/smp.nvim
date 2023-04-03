@@ -27,7 +27,14 @@ else
     tmpdir = "/tmp"
 end
 local logFile = vim.fn.fnamemodify(tmpdir, ":p") .. "smp_client.log"
+local pipeFileName = vim.fn.fnamemodify(tmpdir, ":p") .. ".smp.pipe"
 local _home = vim.fn.expand("~/zettelkasten")
+
+local clearPipeFile = function()
+    local pipe_file = assert(io.open(pipeFileName, "w"))
+    pipe_file:write("")
+    pipe_file:close()
+end
 
 local internal_log = function(message)
     local timestamp = os.date("%Y-%m-%d %H:%M:%S")
@@ -319,6 +326,7 @@ local do_post_smp_config = function()
         snippets_folder = M.Cfg.smp_snippets_folder,
         home = M.Cfg.home,
         show_indicator = M.Cfg.show_indicator,
+        tmpdir = tmpdir,
     }
     if config.cssfile then
         config.cssfile = vim.fn.expand(config.cssfile)
@@ -1064,6 +1072,79 @@ end
 M.insert_blank_line = function()
     insert_empty_lines_between_nonempty_lines()
 end
+
+local function edit_file(file_name)
+    -- Check if the file is already open in a buffer
+    local bufnr = vim.fn.bufnr(file_name)
+
+    if bufnr == -1 then
+        -- If the file is not open in a buffer, open it in a new buffer
+        vim.cmd("edit " .. file_name)
+    else
+        -- If the file is open in a buffer, switch to the buffer
+        vim.cmd("buffer " .. bufnr)
+    end
+end
+
+-- Define a function to watch for changes in a file
+local function watch_file(filepath)
+    -- Open the file for reading
+    local file = io.open(filepath, "r")
+
+    if file == nil then
+        print("File " .. filepath .. " does not exist")
+        return
+    end
+
+    -- Get the initial content of the file
+    local content = file:read("*all")
+
+    -- Close the file
+    file:close()
+
+    -- Set up a loop to check for changes in the file
+    vim.loop.new_fs_event():start(filepath, {}, function(_, _)
+        -- Open the file again for reading
+        local new_file = io.open(filepath, "r")
+
+        -- Get the new content of the file
+        local new_content = new_file:read("*all")
+
+        -- Close the file
+        new_file:close()
+
+        -- If the content has changed, do something
+        if new_content ~= content then
+            -- Print a message to the user
+            local timestamp = os.date("%Y-%m-%d %H:%M:%S")
+            print(
+                "File "
+                    .. filepath
+                    .. " has been modified"
+                    .. " at "
+                    .. timestamp
+            )
+            local regex = "^editit:(.-):%d+$"
+
+            local file_path = string.match(new_content, regex)
+            if file_path then
+                vim.schedule(function()
+                    edit_file(file_path)
+                end)
+            end
+
+            -- Update the content variable to the new content
+            content = new_content
+
+            -- Do something else, like trigger a function
+            -- or execute a command
+        end
+    end)
+end
+
+-- Call the watch_file function with the path to the file you want to watch
+clearPipeFile()
+watch_file(pipeFileName)
 
 local commands = function()
     return {
