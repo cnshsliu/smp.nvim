@@ -17,6 +17,7 @@ local fn_key_map = {}
 local M = {}
 M.server_started = false
 local __insert_blank_line_after = -1
+local smp_group = vim.api.nvim_create_augroup("smp_group", { clear = true })
 
 local tmpdir
 M.snippet_pattern = "^%s*{(.-)}%s*$"
@@ -67,6 +68,9 @@ local function defaultConfig(home)
         copy_file_into_assets = true,
         show_indicator = true,
         break_long_line_at = 80,
+        auto_preview = true,
+        show_navigation_panel = true,
+        show_navigation_content = true,
     }
     M.Cfg = cfg
 end
@@ -752,8 +756,6 @@ M.start = function(openBrowserAfterStart)
         M.pid = pid
         M.server_started = true
         internal_log("\tStarted, create autocmd ")
-        local smp_group =
-            vim.api.nvim_create_augroup("smp_group", { clear = true })
         vim.api.nvim_create_autocmd(
             { "CursorHold", "CursorMoved", "CursorHoldI", "CursorMovedI" },
             {
@@ -1086,6 +1088,7 @@ local function edit_file(file_name)
         -- If the file is open in a buffer, switch to the buffer
         vim.cmd("buffer " .. bufnr)
     end
+    M.preview()
 end
 
 -- Define a function to watch for changes in a file
@@ -1109,6 +1112,9 @@ local function watch_file(filepath)
         -- Open the file again for reading
         local new_file = io.open(filepath, "r")
 
+        if new_file == nil then
+            return
+        end
         -- Get the new content of the file
         local new_content = new_file:read("*all")
 
@@ -1279,5 +1285,16 @@ end)
 Keymap.set(0, "v", "<C-CR>", function()
     insert_empty_lines_between_nonempty_lines()
 end)
+
+if M.Cfg.auto_preview then
+    vim.api.nvim_create_autocmd({ "BufReadPost" }, {
+        pattern = { M.Cfg.home .. "*.md" },
+        group = smp_group,
+        callback = function()
+            local fn = vim.fn.expand("%:p")
+            M.preview()
+        end,
+    })
+end
 
 return M

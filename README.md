@@ -7,25 +7,36 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 1️⃣ [Quick Start](#quick-start-with-packer) 2️⃣ [Screenshots](#screenshots) 3️⃣ [All Features](#all-features)
 
-## Latest Update:
+## Latest Update 📣:
 
-😀😀😀 __Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B,  4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself__
+😀 Show Tags, links, backlinks in preview browser tab. Can disable by setting
 
-😀😀😀 [TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
+```
+show_navigation_panel = false,
+show_navigation_content = false,
+```
 
-😀😀😀 [Command Panel](#command-panel) with `:Smp<cr>`
+Tags, links, backlinks allow you navigate among MDs conveniently.
 
-😀😀😀 [Break long line](#break-long-line), break long line into multiple lines
+😀 Update browser extension: 1. keep only one preview tab for each MD; 22. Active preview tab for current MD; [update now](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
 
-😀😀😀 [Convert URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
+😀 **Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B, 4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself**
 
-😀😀😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
+😀 [TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
+
+😀 [Command Panel](#command-panel) with `:Smp<cr>`
+
+😀 [Break long line](#break-long-line), break long line into multiple lines
+
+😀 [Convert URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
+
+😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
 
 You may be editing several Markdown files in NeoVim at the same time,
 when you switch from one file to another,
 you'd like to let browser to switch previewing tab to your current editing Markdown.
 
-😀😀😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files), this one is very useful for me, I can use it to manage files on local disk, or.... drag files from IM group other people sent into Markdown.
+😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files), this one is very useful for me, I can use it to manage files on local disk, or.... drag files from IM group other people sent into Markdown.
 
 🎉🎉🎉 **[See more exiting features for Markdown lover...](#all-features)**
 
@@ -78,6 +89,7 @@ Besides the basic features of markdown preview, this plugin has the following:
   - [Show images on web and local disk](#images)
   - [Clickable Telekasten note (zk etc.)](#telekasten-note)
   - [A red block indicator points to current editting line](#cursor-following)
+  - [Example Setup](#example-configuration)
   - [Highlight current line in code blocks](#codes-line-highlight)
   - [PlantUML](#plantuml)
   - [Latex](#latex)
@@ -161,6 +173,22 @@ in your setup()
 
 Or, `SmpIndicator 0` to disable, `SmpIndicator 1` to enable,
 and `SmpIndicator -1` to use "show_indicator" value defined in setup()
+
+### Example Configuration
+
+```lua
+    require("smp").setup({
+        home = require("telekasten").Cfg.home or vim.fn.expand("~/zettelkasten"),
+        templates = home .. "/" .. "templates",
+        smp_markdown_css = "~/.config/smp/my_markdown.css",
+        smp_snippets_folder = "~/.config/smp/snippets",
+        copy_file_into_assets = true,
+        show_indicator = true,
+        auto_preview = true,
+        show_navigation_panel = true,
+        show_navigation_content = true,
+    })
+```
 
 ### Codes line highlight
 
