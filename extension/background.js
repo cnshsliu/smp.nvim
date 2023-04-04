@@ -34,27 +34,6 @@ function get_fn_key() {
 			console.error(error);
 		});
 }
-//Find preview tab, if there is zettel tab with the same file,
-//close zettel tab, just keep the preview tab
-function close_zettel() {
-	const regex = /fn_key=([^&#]+)/;
-	chrome.tabs.query(
-		{ currentWindow: true, url: 'http://127.0.0.1:3030/preview?fn_key=*' },
-		function (tabs) {
-			for (let i = 0; i < tabs.length; i++) {
-				const match = tabs[i].url.match(regex);
-				const fileNameWithPath = match ? match[1] : '';
-				const zettelUrl = 'http://127.0.0.1:3030/zettel?path=' + fileNameWithPath;
-				chrome.tabs.query({ url: zettelUrl }, function (tabs) {
-					if (tabs.length > 0) {
-						var tab = tabs[0];
-						chrome.tabs.remove(tab.id);
-					}
-				});
-			}
-		},
-	);
-}
 function removeHashFragment(url) {
 	return url.split('#')[0];
 }
@@ -103,7 +82,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 
 function check() {
 	get_fn_key();
-	close_zettel();
 }
 
 setInterval(check, 1000);

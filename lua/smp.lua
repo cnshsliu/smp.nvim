@@ -1291,7 +1291,6 @@ if M.Cfg.auto_preview then
         pattern = { M.Cfg.home .. "*.md" },
         group = smp_group,
         callback = function()
-            local fn = vim.fn.expand("%:p")
             M.preview()
         end,
     })
