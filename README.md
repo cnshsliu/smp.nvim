@@ -18,7 +18,7 @@ show_navigation_content = false,
 
 Tags, links, backlinks allow you navigate among MDs conveniently.
 
-😀 Update browser extension: 1. keep only one preview tab for each MD; 22. Active preview tab for current MD; [update now](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
+😀 Update browser extension: 1. keep only one preview tab for each MD; 22. Active preview tab for current MD; [update now](https://github.com/cnshsliu/smp.nvim/tree/main/extension), place three files into a folder and follow chrome/edge extension instruction to install it manually to Edge or Chrome browser.
 
 😀 **Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B, 4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself**
 
@@ -359,7 +359,9 @@ Switch files in Neovim, browser will switch previewing tab automatically for you
 Just install a simple Edge/Chrome extension.
 you need to install it manually currently.
 
-[Download zip file](https://github.com/cnshsliu/smp.nvim/blob/main/extension/smp_nvim_companion.zip?raw=true), and install the extension manually to Edge or Chrome browser.
+[Three files](https://github.com/cnshsliu/smp.nvim/tree/main/extension)
+
+Follow Chrome/Edge extension installation instruction and install the extension manually to Edge or Chrome browser.
 
 ### TOC support
 
