@@ -1,5 +1,7 @@
 # Simple Markdown Previewer, Outliner and Incremental Searcher
 
+[中文说明](README_zh.md)
+
 A lightweight, easy-to-use Markdown [preview](#features) and [outline](#markdown-book) and [incrementally search](#search-by-tag) plugin for NeoVim, which live updates
 and feature-rich, to fully unleash your Markdown imagination.
 
