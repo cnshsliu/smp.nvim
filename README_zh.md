@@ -10,8 +10,6 @@
 
 由 Markdown 爱好者为 Markdown 爱好者。如果你也喜欢这个插件，给我钉一个星星或[请我喝杯咖啡](https://buymeacoffee.com/liukehong)。
 
-1️⃣[快速入门](#quick-start-with-packer) 2️⃣[截图](#screenshots)3️⃣[所有功能](#all-features)
-
 ## 最近更新 📣:
 
 😀 在浏览器中显示笔记中的标签, 链接 和 后向链接. 如果不需要这些功能,可以在 setup 中设置:
