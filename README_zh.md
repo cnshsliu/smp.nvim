@@ -410,4 +410,193 @@ We support TOC in two ways:
 
 `:Smp<cr>` will bring up all SMP commands, press enter on one of them to invoke corresponding command.
 
-You may map `:Smp<cr>` to your favorite key in "init.l
+You may map `:Smp<cr>` to your favorite key in "init.lua", for example:
+
+```lua
+   vim.keymap.set("n", "<leader>m", "<cmd>Smp<CR>", { silent = true })
+```
+
+## Markdown Book
+
+Outline markdown structures in a standalone buffer, list out all tags,
+backlinks, and forward links. todos, and headers
+
+`:SmpBook`
+
+<img width="1192" alt="image" src="https://user-images.githubusercontent.com/2124836/227623987-31653e82-4304-4307-adea-6183d726a588.png">
+
+Press on each item will bring you to there.
+
+While you are on a markdown header entry, use '>>' to demote it, use '<<' to promote it.
+
+press '?' in the book buffer to bring up help
+<img width="1400" alt="image" src="https://user-images.githubusercontent.com/2124836/227632690-dd8d9fd1-bd10-405c-8af5-390d57d311dd.png">
+
+### Search by tag
+
+Search by multiple tags delimitered with space or ',', "-tagA" to exlude "tagA", ":short-name" to give it a name to save the query condition for later reuse.
+<img width="1196" alt="image" src="https://user-images.githubusercontent.com/2124836/227624370-fef7b8e1-f64d-4cd7-8f6b-59c2d49bb668.png">
+
+`:mysearch -tagA tagB tagC`
+
+means you'd like to search all markdown fiels which have #tagB, #tagC, but not tagA. and save it as "mysearch". The order of these element does not matter.
+
+### Search by text
+
+Search by multiple text delimitered with space or ',',
+
+`textA textB :mytextsearch -textC`
+
+means you'd like to search all markdown fiels which contain textA, textB, but not textC. and save it as "mytextsearch". The order of these element does not matter.
+
+### Saved Search
+
+Use search syntax described above to save your query, next time, you could pick a saved search with Telescope picker,
+and re-run it by hitting `<CR>`.
+
+### Sync Todos
+
+`:SmpSyncTodo` will sync your Markdown todos with MacOS Reminder application, since reminders are kept synchronized between iPhone and MacBook already, so you are now able to access your todos anywhere, anytime with either your iPhone, MacBook.
+
+The synchronization is bidirectional.
+
+## Requirements
+
+1. NeoVim v0.6.0 or higher.
+
+2. Node.js v14.0 or higher.
+
+## Getting started
+
+### Installation
+
+Packer (packer.nvim)
+
+```lua
+use {
+  'cnshsliu/smp.nvim',
+  run="cd server && npm install"
+}
+```
+
+I don't use other package manager than Packer, if you are familiar with them,
+kindly update this README.
+
+### Setup
+
+```lua
+require("smp").setup({
+	-- home = require("telekasten").Cfg.home or vim.fn.expand("~/zettelkasten"),
+	home = vim.fn.expand("~/zettelkasten"),
+	templates = home .. "/" .. "templates",
+	smp_markdown_css = "~/.config/smp/my_markdown.css",
+	smp_snippets_folder = "~/.config/smp/snippets",
+})
+```
+
+### Preview Markdown
+
+Press
+
+`:SmpPreview`
+
+to start to preview the current buffer.
+
+1. `:SmpPreview`: start service and preview the current buffer`
+2. `:SmpStart`: start background service without open browser
+3. `:SmpStop`: stop background service
+
+Normally, you only use SmpPreview command, if service is not started,
+it will start service first, then open browser for previewing, otherwise,
+it will preview directly.
+
+When you close NeoVim window, the background service will be shutdown
+as well. you don't have to close it manually.
+
+The background service is written with Node.js, that's why Node.js is
+in the dependency list of this plugin.
+
+### All Commands
+
+`require('smp').preview()`: "preview current markdown file"
+
+`require('smp').book()`: "open the markdown book in a splitted window on right"
+
+`require('smp').synctodo()`: "Sync all todos in Markdown to MacOS Reminder"
+
+`require('smp').expand_snippet()`: "Expand current snippet in place"
+
+`require('smp').expand_all_snippets()`: "Expand all snippets in place"
+
+`require('smp').breakIfLong()`: "Break line length if it's too long for easier editting"
+
+`require('smp').insert_blank_line()`: "Insert blank lines between multiple lines of text"
+
+`require('smp').bookthis()`: "Show book of this markdown file"
+
+`require('smp').search_text()`: "Incremental search all markdown files by content"
+
+`require('smp').search_tag()`: "Incremental search all markdown files by tags"
+
+`require('smp').insert_toc_here()`: "Insert TOC here"
+
+`require('smp').indicator_on()`: "Show current line indicator in previewer"
+
+`require('smp').indicator_off()`: "Don't show line indicator in previewer"
+
+`require('smp').indicator_as_config()`: "Show line indicator in previewer as configured"
+
+`require('smp').wrapwiki_visual()`: "Wrap selected text into a wiki link"
+
+`require('smp').wrapwiki_word()`: "Wrap word under cursor into a wiki link"
+
+`require('smp').wrapwiki_line()`: "Wrap current line into a wiki link"
+
+`require('smp').paste_url()`: "Paste url from clipboard into a link"
+
+`require('smp').paste_wiki_word()`: "Paste word from clipboard into a link"
+
+`require('smp').open_file_in_this_line()`: "System open the linked file in this line"
+
+`require('smp').locate_file_in_this_line()`: "System locate the linked file in this line"
+
+`require('smp').gotoHeaderFromTocEntry()`: "Jump to header from TOC entry"
+
+`require('smp').start()`: "Start background server"
+
+`require('smp').stop()`: "Stop background server"
+
+### Keymaps
+
+`:Smp` will bring up a command palette with all these commands. You can also map them to your own keys.
+
+## Contributing
+
+Feel free to open issues or submit pull requests to contribute to this project.
+
+## Ask for your help
+
+Need your help, and welcome your contribution
+
+- Test on different OSs, environments.
+- Raise issues
+- Submit PRs
+- Give Suggestions
+
+  Thanks a lot, together we make SMP nicer.
+
+## Others
+
+SMP uses port 3030, a configuration to enable other port
+you choose has not been implemented at this moment,
+3030 may cause confliction with your other program,
+if this is your case and you find out that port configuration is
+must-to-have for you, please raise an issue.
+I will add it ASAP.
+
+For note taking, suggest [Telekasten](https://github.com/renerocksai/telekasten.nvim)
+I take notes with Telekasten everyday, and just found I need another Markdown
+previewer, so I wrote this one,
+I am with a Macbook Pro, and this plugin is tested on MacOS only,
+If you find any bugs on other OSs, kindly raise an issue,
+I will fix it ASAP. thanks a lot.
