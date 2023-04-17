@@ -52,6 +52,17 @@ end
 internal_clear_log()
 internal_log("\n")
 
+local concat_file_path = function(folder, filename)
+    -- Check if the folder path ends with a slash
+    if folder:sub(-1) ~= "/" then
+        folder = folder .. "/"
+    end
+
+    -- Join the folder path and filename together
+    local full_path = vim.fn.join({ folder, filename }, "")
+
+    return full_path
+end
 local function command_exists(command)
     return vim.fn.executable(command) == 1
 end
@@ -170,7 +181,7 @@ local __open_resource = function(url)
         vim.fn.system(string.format("start '%s'", url))
     elseif vim.fn.has("unix") == 1 then
         if vim.fn.has("mac") == 1 then
-            vim.fn.system(string.format("open '%s'", url))
+            vim.fn.system(string.format("open -g '%s'", url))
         else
             vim.fn.system(string.format("xdg-open '%s'", url))
         end
@@ -284,6 +295,33 @@ local __get_title = function(url, callback)
     end
 end
 
+local __get_wiki_path = function(wiki_name)
+    local wiki_path = M.Cfg.home
+    if wiki_path == nil then
+        wiki_path = vim.fn.expand("%:p:h")
+    end
+    local fullpath = concat_file_path(wiki_path, wiki_name .. ".md")
+    return fullpath
+end
+
+local __get_wiki_name_under_cursor = function()
+    local line = vim.api.nvim_get_current_line()
+    local cursor_col = vim.api.nvim_win_get_cursor(0)[2] + 1
+    local extracted_filename = nil
+
+    for filename in string.gmatch(line, "%[%[(.-)%]%]") do
+        local start_col = string.find(line, "%[%[" .. filename .. "%]%]")
+        local end_col = start_col + string.len(filename) + 3
+
+        if cursor_col >= start_col and cursor_col <= end_col then
+            extracted_filename = filename
+            break
+        end
+    end
+
+    return extracted_filename
+end
+
 local function compare_tables(t1, t2)
     if t1 == nil or t2 == nil then
         return false
@@ -339,18 +377,6 @@ local do_post_smp_config = function()
         config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
     __post2("127.0.0.1", 3030, "/config", config)
-end
-
-local concat_file_path = function(folder, filename)
-    -- Check if the folder path ends with a slash
-    if folder:sub(-1) ~= "/" then
-        folder = folder .. "/"
-    end
-
-    -- Join the folder path and filename together
-    local full_path = vim.fn.join({ folder, filename }, "")
-
-    return full_path
 end
 
 local function urlEncode(s)
@@ -827,6 +853,14 @@ M.stop = function()
     pcall(vim.api.nvim_del_augroup_by_name, "smp_group")
 end
 
+M.toggle_auto_preview = function()
+    if M.Cfg.auto_preview then
+        M.Cfg.auto_preview = false
+    else
+        M.Cfg.auto_preview = true
+    end
+end
+
 M.preview = function()
     do_post_smp_config()
     if M.server_started == false then
@@ -1022,6 +1056,15 @@ local function pressControlReturn()
     if header then
         vim.api.nvim_buf_set_mark(0, "t", line_nr, col, {})
         move_cursor_to_header(header)
+    else
+        local wiki_name = __get_wiki_name_under_cursor()
+        if wiki_name then
+            local wiki_path = __get_wiki_path(wiki_name)
+            if wiki_path then
+                internal_log("Jump to wiki: " .. wiki_path)
+                vim.cmd("edit " .. wiki_path)
+            end
+        end
     end
 end
 
@@ -1192,6 +1235,7 @@ local commands = function()
         },
         { "start", "start_server", M.start },
         { "stop", "stop_server", M.stop },
+        { "toogle auto preview", "toggle_auto_preview", M.toggle_auto_preview },
     }
 end
 
@@ -1278,22 +1322,21 @@ M.gotoHeaderFromTocEntry = function()
     pressControlReturn()
 end
 
-Keymap.set(0, "n", "<C-CR>", function()
-    pressControlReturn()
-end)
+Keymap.set(0, "n", "<C-CR>", pressControlReturn)
 
 Keymap.set(0, "v", "<C-CR>", function()
     insert_empty_lines_between_nonempty_lines()
 end)
 
-if M.Cfg.auto_preview then
-    vim.api.nvim_create_autocmd({ "BufReadPost" }, {
-        pattern = { M.Cfg.home .. "*.md" },
-        group = smp_group,
-        callback = function()
+vim.api.nvim_create_autocmd({ "BufReadPost" }, {
+    pattern = { M.Cfg.home .. "*.md" },
+    group = smp_group,
+    callback = function()
+        if M.Cfg.auto_preview then
             M.preview()
-        end,
-    })
-end
+        end
+    end,
+})
 
+internal_log("Smp.nvim Success initialized")
 return M
