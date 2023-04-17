@@ -13,9 +13,9 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 😀 2023-04-18 updates:
 
-1.  <Control-Enter> on a wiki under cussor, will open it;
-2.  toggel auto preview on/off, see it in command palette;
-3.  MacOS, previewing MD will not lose focus of current Neovim window (big improvement for me at least);
+1.  press Control-Enter on a wiki under cussor, will open it;
+2.  toggle auto preview on/off, see this command in command palette;
+3.  on MacOS, previewing MD will not lose focus of current Neovim window;
 
 😀 Show Tags, links, backlinks in preview browser tab. Can disable by setting
 
