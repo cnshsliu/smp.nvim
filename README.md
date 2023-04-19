@@ -11,13 +11,19 @@ Yes, we [preview](#features), [outline](#markdown-book) and [incrementally searc
 
 ## Latest Update 📣:
 
-😀 2023-04-18 updates:
+2023-04-19 updates:
+
+Use your markdown as a slide deck. We support [Remark](https://github.com/remarkjs) now.
+
+you can use `:Smp<cr>` to bring up command palette, then choose "remark slideshow" to preview your markdown as a slide deck.
+
+2023-04-18 updates:
 
 1.  press Control-Enter on a wiki under cussor, will open it;
 2.  toggle auto preview on/off, see this command in command palette;
 3.  on MacOS, previewing MD will not lose focus of current Neovim window;
 
-😀 Show Tags, links, backlinks in preview browser tab. Can disable by setting
+Show Tags, links, backlinks in preview browser tab. Can disable by setting
 
 ```
 show_navigation_panel = false,
@@ -26,25 +32,25 @@ show_navigation_content = false,
 
 Tags, links, backlinks allow you navigate among MDs conveniently.
 
-😀 Update browser extension: 1. keep only one preview tab for each MD; 22. Active preview tab for current MD; [update now](https://github.com/cnshsliu/smp.nvim/tree/main/extension), place three files into a folder and follow chrome/edge extension instruction to install it manually to Edge or Chrome browser.
+Update browser extension: 1. keep only one preview tab for each MD; 22. Active preview tab for current MD; [update now](https://github.com/cnshsliu/smp.nvim/tree/main/extension), place three files into a folder and follow chrome/edge extension instruction to install it manually to Edge or Chrome browser.
 
-😀 **Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B, 4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself**
+**Excited to let you know another new feature: "Edit back in Neovim", the scenario is: 1. edit one markdown FILE_A, 2. preview FILE_A. 3. in previewing browser, navigate to another markdown FILE_B, 4. click on "Edit in Neovim", 5, the FILE_B markdown is opend in Neovim. exremely improve my markdown editing experience, give it a try by yourself**
 
-😀 [TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
+[TOC](#toc-support) 1. genrated TOC right in MD; 2. include TOC with {toc}
 
-😀 [Command Panel](#command-panel) with `:Smp<cr>`
+[Command Panel](#command-panel) with `:Smp<cr>`
 
-😀 [Break long line](#break-long-line), break long line into multiple lines
+[Break long line](#break-long-line), break long line into multiple lines
 
-😀 [Convert URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
+[Convert URL into markdown link automatically](#convert-url-into-link-automatically), scenario: visiting a site, copy & paste it's URL from browser to Neovim, or drag a link to NeoVim, the URL will be converted into a link: `[Web Page Title](web page url)` automatically.
 
-😀 [Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
+[Switch browser tab automatically when we edit multiple Markdowns](#switch-browser-tab-automatically)
 
 You may be editing several Markdown files in NeoVim at the same time,
 when you switch from one file to another,
 you'd like to let browser to switch previewing tab to your current editing Markdown.
 
-😀 [Make a Markdown link on Drag and dropping file from Finder](#drop-files), this one is very useful for me, I can use it to manage files on local disk, or.... drag files from IM group other people sent into Markdown.
+[Make a Markdown link on Drag and dropping file from Finder](#drop-files), this one is very useful for me, I can use it to manage files on local disk, or.... drag files from IM group other people sent into Markdown.
 
 🎉🎉🎉 **[See more exiting features for Markdown lover...](#all-features)**
 

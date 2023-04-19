@@ -888,6 +888,29 @@ M.preview = function()
     vim.defer_fn(open_browser, 300)
 end
 
+M.remark = function()
+    do_post_smp_config()
+    if M.server_started == false then
+        M.start(true)
+        return
+    end
+    if not command_exists("curl") then
+        print("Please install curl to use this plugin.")
+        return
+    end
+    local bufnr = vim.api.nvim_win_get_buf(0)
+    -- open browser here
+    local file_path = vim.api.nvim_buf_get_name(bufnr)
+    local fn = vim.fn.expand(file_path)
+    local fn_key = fn_key_map[fn]
+    local function open_browser()
+        __open_resource(
+            string.format("http://127.0.0.1:3030/remark?fn=%s", fn_key)
+        )
+    end
+    vim.defer_fn(open_browser, 300)
+end
+
 M.wrapwiki_visual = function()
     local function wrap_visual_selection(prefix, suffix)
         local start_line, start_col =
@@ -1200,6 +1223,7 @@ watch_file(pipeFileName)
 local commands = function()
     return {
         { "preview", "preview", M.preview },
+        { "remark slideshow", "remark", M.remark },
         { "show book", "show_book", M.book },
         { "sync todos with Mac Reminder", "sync_todos", M.synctodo },
         { "expand snippet", "expand_snippet", M.expand_snippet },

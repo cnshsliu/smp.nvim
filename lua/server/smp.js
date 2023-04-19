@@ -970,6 +970,49 @@ const init = async () => {
 		},
 	});
 
+	server.route({
+		method: 'GET',
+		path: '/load',
+		handler: (request, h) => {
+			let fn = request.query.fn;
+
+			const fileExists = fs.existsSync(fn);
+			if (fileExists && isMarkdownFile(fn)) {
+				const fileName = path.basename(fn);
+				const encodedFileName = encodeURIComponent(fileName);
+				return h
+					.file(fn, { confine: false })
+					.header('Content-Type', mime.lookup(fileName))
+					.header(
+						'Content-Disposition',
+						`${getDispositionType(fileName)}; filename*=UTF-8''${encodedFileName}`,
+					);
+			}
+		},
+	});
+
+	server.route({
+		method: 'GET',
+		path: '/remark',
+		handler: (request, h) => {
+			let fn = request.query.fn;
+
+			const fileExists = fs.existsSync(fn);
+			if (fileExists && isMarkdownFile(fn)) {
+				let content = fs.readFileSync('./public/remark/remark.html', 'utf8');
+				let lines = content.split(/\r?\n/);
+				for (let i = 0; i < lines.length; i++) {
+					if (lines[i].indexOf('sourceUrl:') >= 0) {
+						lines[i] = `sourceUrl: '/load?fn=${encodeURIComponent(fn)}'`;
+					}
+				}
+				content = lines.join('\n');
+				console.log(content);
+				return h.response(content);
+			}
+		},
+	});
+
 	function replacePath(path, newFolder) {
 		let newPath = path.replace(/\/SMP_MD_HOME\//, newFolder);
 
