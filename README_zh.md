@@ -12,14 +12,14 @@
 
 ## 最近更新 📣:
 
-2023-04-19 更新
+### 2023-04-19 更新
 
 我们现在支持通过用幻灯片方式播放你的 Markdown 文件。
 具体怎样使用 Markdown 编辑幻灯片，请参考[Remark](https://github.com/remarkjs)
 
 输入 `:Smp<cr>` 呼出命令面板，然后选择"remark slideshow" 来展示当前 Markdown 为幻灯片
 
-2023-04-18 更新:
+### 2023-04-18 更新:
 
 1.  在一个 Wiki word 上输入 Control-Enter， 将打开这个 Markdown 笔记。
 2.  功能面板中提供切换是否自动预览的功能
