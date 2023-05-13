@@ -215,7 +215,7 @@ function fetchData() {
 
 
             requestAnimationFrame(() => {
-                        setTimeout(()=>{scrollToLine(data.linenr, data.thisline);}, 200);
+              setTimeout(()=>{scrollToLine(data.linenr, data.thisline);}, 200);
             });
             break;
           case 'touched_line':
@@ -944,9 +944,9 @@ const init = async () => {
         const resp_html =
           '<head>' +
           getStylesheet() +
-          '</head>' +
+          '</head>\n<body class="markdown-body">\n' +
           indicator(-1) +
-          '<article class="markdown-body">\n' +
+          '<article>\n' +
           html +
           getNavigationDiv(fn, true) +
           '</article>' +
@@ -957,7 +957,8 @@ const init = async () => {
             global_indicator < 0 ? smpConfig.show_indicator : global_indicator === 0 ? false : true,
           ) +
           getChartJsScript() +
-          copyright;
+          copyright +
+          "\n</body>";
         return h.response(resp_html);
       } else {
         const fileExists = fs.existsSync(fn);
