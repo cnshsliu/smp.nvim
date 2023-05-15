@@ -26,5 +26,6 @@ jobs:
       - uses: JohnnyMorganz/stylua-action@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          version: 1.4.0
           # CLI arguments
           args: --color always --check lua/
