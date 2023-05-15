@@ -17,6 +17,7 @@ local fn_key_map = {}
 local M = {}
 M.server_started = false
 local __insert_blank_line_after = -1
+
 local smp_group = vim.api.nvim_create_augroup("smp_group", { clear = true })
 
 local tmpdir
@@ -782,11 +783,12 @@ M.start = function(openBrowserAfterStart)
     M.pid = pid
     M.server_started = true
     internal_log("\tStarted, create autocmd ")
+    smp_group = vim.api.nvim_create_augroup("smp_group", { clear = true })
     vim.api.nvim_create_autocmd(
       { "CursorHold", "CursorMoved", "CursorHoldI", "CursorMovedI" },
       {
         pattern = { "*.md" },
-        group = smp_group,
+        group = "smp_group",
         callback = post_data_update,
       }
     )

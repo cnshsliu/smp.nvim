@@ -744,7 +744,7 @@ const patchLine = (
   } else if (line.match(regex_structure_backlink)) {
     let backlinks_html = '<div class="smp_structure_backlinks">';
     for (const link of structure.backlinks) {
-      backlinks_html += `<span class="smp_nav_backlinks"><a href="${getZettelPath(
+      backlinks_html += `<span class="smp_nav_backlink"><a href="${getZettelPath(
         link.fullpath,
       )}">${link.title}</a></span>`;
     }
@@ -986,12 +986,15 @@ const init = async () => {
             const html = marked.parse(md_string);
 
             return h.response(
+              "<head>" +
               getStylesheet() +
-              '<article class="markdown-body">' +
+              '</head>\n<body class="markdown-body">\n' +
+              '<article>' +
               html +
               getNavigationDiv(fn, false) +
               '</article>' +
-              copyright,
+              copyright +
+              '\n</body>',
             );
           }
         } else {
