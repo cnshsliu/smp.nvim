@@ -537,7 +537,20 @@ M.breakIfLong = function(limit)
         return #segments
     end
 end
---
+
+local replace_comma_with_space = function()
+    -- Get current line
+    local line = vim.api.nvim_get_current_line()
+
+    -- Check if line starts with a number followed by a Chinese comma
+    if string.match(line, "^%d+[，]") then
+        -- Replace Chinese comma with comma followed by a space
+        local new_line = string.gsub(line, "([%d]+)，", "%1, ")
+
+        -- Set new line
+        vim.api.nvim_set_current_line(new_line)
+    end
+end
 
 local do_post_data_update = function()
     __insert_blank_line_after = -1
@@ -545,7 +558,11 @@ local do_post_data_update = function()
     local pos = vim.api.nvim_win_get_cursor(0)
     local bufnr = vim.api.nvim_win_get_buf(0)
     local file_path = vim.api.nvim_buf_get_name(bufnr)
+
+    replace_comma_with_space()
+
     local current_line_number = pos[1]
+
     local current_line_text = vim.api.nvim_buf_get_lines(
         0,
         current_line_number - 1,
@@ -851,6 +868,11 @@ M.indicator_as_config = function()
     __post2("127.0.0.1", 3030, "/indicator", { indicator = -1 })
 end
 
+M.togglenav = function()
+    __post2("127.0.0.1", 3030, "/togglenav")
+    M.preview()
+end
+
 M.stop = function()
     __post2("127.0.0.1", 3030, "/stop", {})
     M.server_started = false
@@ -893,6 +915,9 @@ M.preview = function()
 end
 
 M.todos = function()
+    if M.server_started == false then
+        M.start(true)
+    end
     local function open_browser()
         __open_resource(string.format("http://127.0.0.1:3030/todos"))
     end
@@ -1168,6 +1193,21 @@ local function edit_file(file_name)
     M.preview()
 end
 
+local function move_to_line(file_name, line_number)
+    -- Check if the file is already open in a buffer
+    local bufnr = vim.fn.bufnr(file_name)
+
+    if bufnr == -1 then
+        -- If the file is not open in a buffer, open it in a new buffer
+        vim.cmd("edit " .. file_name)
+    else
+        -- If the file is open in a buffer, switch to the buffer
+        vim.cmd("buffer " .. bufnr)
+    end
+    --move to line
+    vim.api.nvim_win_set_cursor(0, { line_number, 0 })
+end
+
 -- Define a function to watch for changes in a file
 local function watch_file(filepath)
     -- Open the file for reading
@@ -1209,13 +1249,23 @@ local function watch_file(filepath)
                     .. " at "
                     .. timestamp
             )
-            local regex = "^editit:(.-):%d+$"
+            local regex_editfile = "^editit:(.-):(.-):%d+$"
+            local regex_movetoline = "^moveto:(.-):(%d-):%d+$"
 
-            local file_path = string.match(new_content, regex)
-            if file_path then
+            local file_path, ln = string.match(new_content, regex_editfile)
+            if file_path and ln then
                 vim.schedule(function()
+                    internal_log(ln)
                     edit_file(file_path)
                 end)
+            else
+                local file_name, line_number =
+                    string.match(new_content, regex_movetoline)
+                if file_name and line_number then
+                    vim.schedule(function()
+                        move_to_line(file_name, line_number)
+                    end)
+                end
             end
 
             -- Update the content variable to the new content
@@ -1234,7 +1284,7 @@ watch_file(pipeFileName)
 local commands = function()
     return {
         { "preview", "preview", M.preview },
-        { "todos", "all todos", M.todos },
+        { "all todos", "all_todos", M.todos },
         { "remark slideshow", "remark", M.remark },
         { "show book", "show_book", M.book },
         { "sync todos with Mac Reminder", "sync_todos", M.synctodo },
@@ -1324,7 +1374,20 @@ local commands = function()
         { "start", "start_server", M.start },
         { "stop", "stop_server", M.stop },
         { "toogle auto preview", "toggle_auto_preview", M.toggle_auto_preview },
+        {
+            "Toggle navigation",
+            "togglenav",
+            M.togglenav,
+        },
     }
+end
+
+M.subcommands = function()
+    local candidates = {}
+    for k, v in pairs(commands()) do
+        candidates[k] = v[2]
+    end
+    return candidates
 end
 
 M.command = function(subcommand)
