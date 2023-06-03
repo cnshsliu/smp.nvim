@@ -1,5 +1,6 @@
 'use strict';
 const marked = require('marked');
+const childProcess = require('child_process');
 const katex = require('katex');
 const path = require('path');
 const mime = require('mime-types');
@@ -52,7 +53,7 @@ let global_indicator = -1;
 const defaultMarkDownCss = '/styles/github-markdown.css';
 let smpConfig = {
 	css: defaultMarkDownCss,
-	tmp: '/tmp',
+	tmpdir: '/tmp',
 	show_navigation_panel: true,
 	show_navigation_content: true,
 };
@@ -186,8 +187,10 @@ function scrollOnly(linenr, lineText){
 }
 
 function scrollToLine(linenr, lineText){
-  if(use_indicator===undefined?${showIndicator}:use_indicator ) setIndicator(linenr, lineText);
-  scrollOnly(linenr, lineText);
+  if(use_indicator===undefined?${showIndicator}:use_indicator ) {
+  setIndicator(linenr, lineText);
+    scrollOnly(linenr, lineText);
+  }
 }
 
 scrollToLine(${lnr}, \`${thisline}\`);
@@ -198,7 +201,7 @@ let fetchFailed = 0;
 let intervalId=0;
 const dd = new diffDOM.DiffDOM();
 function fetchData() {
-    let url = "http://127.0.0.1:3030/getupdate/${update_key}/" + thisTs;
+    let url = "http://127.0.0.1:3040/getupdate/${update_key}/" + thisTs;
     lastTs = thisTs;
     fetch(url)
       .then((response) => {
@@ -403,11 +406,31 @@ function isValidUrl(string) {
 	return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
+// function generatePlantUmlImageUrl_experiment(plantUmlSource) {
+// 	const uid = generateRandomString(6);
+// 	const umlFilePath = path.join(smpConfig.tmpdir, uid + '.uml');
+// 	const svgFilePath = path.join(smpConfig.tmpdir, uid + '.svg');
+// 	fs.writeFileSync(umlFilePath, plantUmlSource);
+// 	childProcess.execFile(
+// 		'java',
+// 		['-jar', 'plantuml.jar', '-tsvg', '-o', smpConfig.tmpdir, umlFilePath],
+// 		(err, stdout, stderr) => {
+// 			if (err) {
+// 				console.error(err);
+// 				return;
+// 			}
+// 			return 'http://127.0.0.1:3040/plantuml/svg/' + uid;
+// 		},
+// 	);
+// 	return 'http://127.0.0.1:3040/plantuml/svg/' + uid;
+// }
+
 function generatePlantUmlImageUrl(plantUmlSource) {
 	const encodedPlantUml = plantumlEncoder.encode(plantUmlSource);
-	const plantUmlServerUrl = 'http://www.plantuml.com/plantuml/img/';
+	const plantUmlServerUrl = 'http://www.plantuml.com/plantuml/svg/';
 	return plantUmlServerUrl + encodedPlantUml;
 }
+
 const indicator = function (lnr, scroll = true) {
 	return `<span class="smpanchor ${scroll ? 'scrollto' : ''}" id="lucas_tkbp_${
 		lnr + 1
@@ -638,7 +661,7 @@ function getBacklinks(directory, title) {
 
 const getNavigationUrl = function (fn, ispreview, section) {
 	return (
-		'http://127.0.0.1:3030/nav?path=' +
+		'http://127.0.0.1:3040/nav?path=' +
 		encodeURIComponent(fn) +
 		'&section=' +
 		section +
@@ -648,10 +671,10 @@ const getNavigationUrl = function (fn, ispreview, section) {
 };
 
 const getZettelPath = function (fn) {
-	return `http://127.0.0.1:3030/preview?fn_key=${encodeURIComponent(fn)}`;
+	return `http://127.0.0.1:3040/preview?fn_key=${encodeURIComponent(fn)}`;
 };
 const getTagHref = function (tag, fn) {
-	return `http://127.0.0.1:3030/tag?tag=${encodeURIComponent(tag)}&path=${encodeURIComponent(fn)}`;
+	return `http://127.0.0.1:3040/tag?tag=${encodeURIComponent(tag)}&path=${encodeURIComponent(fn)}`;
 };
 
 const getNavigationScript = function () {
@@ -679,7 +702,7 @@ const getNavigationScript = function () {
       }
       function editThis(event, path){
         event.preventDefault(); 
-        fetch("http://127.0.0.1:3030/editThis?path=" + encodeURIComponent(path) + "&ln="+ current_viewing_line_number);
+        fetch("http://127.0.0.1:3040/editThis?path=" + encodeURIComponent(path) + "&ln="+ current_viewing_line_number);
       }
     </script>
 `;
@@ -769,7 +792,6 @@ const patchLine = (
 	structure,
 	appendIndicator = true,
 ) => {
-	//
 	//Reference , don't touch
 	if (line.match(/^\s*\[.+]:\s*.+$/)) {
 		//Refen
@@ -930,9 +952,42 @@ function search_tag_in_directory(directory, tags_to_match, tags_to_exclude) {
 	return matches;
 }
 
+// Pre-process lines to:
+// 1. insert include file content
+
+const preprocessLines = (lines, dir_of_current_md) => {
+	for (let i = 0; i < lines.length; i++) {
+		let match = lines[i].match(/^\s*(inc|uml):\s+(.+)$/);
+
+		if (match) {
+			let umlFilePath = path.resolve(dir_of_current_md, match[2].trim());
+			const fileExists = fs.existsSync(umlFilePath);
+			if (fileExists) {
+				let includedFileContent = fs.readFileSync(umlFilePath, 'utf8');
+				let includedLines = includedFileContent.split(/\r?\n/);
+				if (match[1] === 'uml') {
+					if (includedLines[0].startsWith('```plantuml') === false) {
+						includedLines.unshift('```plantuml');
+					}
+					if (includedLines[includedLines.length - 1].startsWith('```') === false) {
+						includedLines.push('```');
+					}
+				}
+
+				// Replace the matched line with the new lines
+				lines.splice(i, 1, ...includedLines);
+
+				// Adjust i to account for the new lines
+				i += includedLines.length - 1;
+			}
+		}
+	}
+	return lines;
+};
+
 const init = async () => {
 	const server = Hapi.server({
-		port: 3030,
+		port: 3040,
 		host: '127.0.0.1',
 		routes: {
 			files: {
@@ -1054,6 +1109,7 @@ const init = async () => {
 						const content = fs.readFileSync(fn, 'utf8');
 						const structure = getStructureFromContent(smpConfig.home, fn, content);
 						let lines = content.split(/\r?\n/);
+						lines = preprocessLines(lines, path.dirname(fn));
 
 						if (smpConfig.show_navigation_content) {
 							lines = lines.concat(navigation_container_lines);
@@ -1083,6 +1139,39 @@ const init = async () => {
 			}
 		},
 	});
+
+	// This function should use plantuml-encoder to decode the encoded_string
+	// and use it to generate teh svg file.
+	// server.route({
+	// 	method: 'GET',
+	// 	path: '/plantuml/{suffix}/{encoded_string}',
+	// 	handler: async (request, h) => {
+	// 		const suffix = request.params.suffix;
+	// 		const uid = request.params.uid;
+	// 		console.log(smpConfig.tmpdir, suffix, uid);
+	// 		const svgFilePath = path.join(smpConfig.tmpdir, uid + '.' + suffix);
+	// 		let exists = false;
+	// 		const interval = setInterval(() => {
+	// 			exists = fs.existsSync(svgFilePath);
+	// 			if (exists) {
+	// 				clearInterval(interval);
+	// 				const fileName = uid + '.' + suffix;
+	// 				const encodedFileName = encodeURIComponent(fileName);
+	// 				return h
+	// 					.file(svgFilePath, { confine: false })
+	// 					.header('Content-Type', mime.lookup(fileName))
+	// 					.header(
+	// 						'Content-Disposition',
+	// 						`${getDispositionType(fileName)}; filename*=UTF-8''${encodedFileName}`,
+	// 					);
+	// 			}
+	// 		}, 1000);
+	// 		const timeout = setTimeout(() => {
+	// 			clearInterval(interval);
+	// 			h.response({ message: 'Diagram generation timed out' }).code(504);
+	// 		}, 10000);
+	// 	},
+	// });
 
 	server.route({
 		method: 'GET',
@@ -1200,7 +1289,7 @@ const init = async () => {
 					`<script>
           function editThis(event, path){
             event.preventDefault(); 
-            fetch("http://127.0.0.1:3030/editThis?path=" + encodeURIComponent(path) + "&ln=1")
+            fetch("http://127.0.0.1:3040/editThis?path=" + encodeURIComponent(path) + "&ln=1")
           }
         </script></head>\n<body class="markdown-body">\n`;
 				for (const key in todos) {
@@ -1262,6 +1351,7 @@ const init = async () => {
 					const content = fs.readFileSync(fn, 'utf8');
 					const structure = getStructureFromContent(smpConfig.home, fn, content);
 					let lines = content.split(/\r?\n/);
+					lines = preprocessLines(lines, path.dirname(fn));
 
 					if (smpConfig.show_navigation_content) {
 						lines = lines.concat(navigation_container_lines);
@@ -1361,7 +1451,7 @@ const init = async () => {
 			let payload = request.payload;
 			if (payload.cssfile) {
 				if (fs.existsSync(payload.cssfile)) {
-					smpConfig.css = `http://127.0.0.1:3030/SMP_LINK/${Buffer.from(payload.cssfile).toString(
+					smpConfig.css = `http://127.0.0.1:3040/SMP_LINK/${Buffer.from(payload.cssfile).toString(
 						'base64',
 					)}`;
 				} else {
@@ -1390,6 +1480,7 @@ const init = async () => {
 			if (smpConfig.show_navigation_content) {
 				lines = lines.concat(navigation_container_lines);
 			}
+			console.log('/update', fn);
 			let fn_key = payload.fn_key;
 			if (!fn_key || !fn) {
 				payload.lines.splice(1, payload.lines.length - 1, '...');
@@ -1404,6 +1495,7 @@ const init = async () => {
 			if (lines.length > 0 && lines[0] !== 'NO_CHANGE') {
 				//update content
 				const structure = getStructureFromContent(smpConfig.home, fn_key, lines.join('\n'));
+				lines = preprocessLines(lines, path.dirname(fn));
 				let patched = patchAllLines(lines, path.dirname(fn), fn, structure);
 				let md_string = patched.join('\n');
 				string_stores[fn_key] = {

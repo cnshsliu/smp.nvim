@@ -284,7 +284,7 @@ local __post2 = function(host, port, endpoint, data)
 end
 
 local __get_title = function(url, callback)
-    __post2("127.0.0.1", 3030, "/urltitle", { url = url })
+    __post2("127.0.0.1", 3040, "/urltitle", { url = url })
     local outfile = tmpdir .. "/tempfile.out"
     local file = io.open(outfile, "r")
     if file == nil then
@@ -379,7 +379,7 @@ local do_post_smp_config = function()
     if config.snippets_folder then
         config.snippets_folder = vim.fn.expand(config.snippets_folder)
     end
-    __post2("127.0.0.1", 3030, "/config", config)
+    __post2("127.0.0.1", 3040, "/config", config)
 end
 
 local function urlEncode(s)
@@ -640,7 +640,7 @@ local do_post_data_update = function()
     }
     -- print(string.format("%s...%s...%d", "Post", vim.inspect(pos), bufnr))
     if payload.fn then
-        __post2("127.0.0.1", 3030, "/update", payload)
+        __post2("127.0.0.1", 3040, "/update", payload)
         if __insert_blank_line_after > 0 then
             vim.api.nvim_buf_set_lines(
                 bufnr,
@@ -834,7 +834,7 @@ M.start = function(openBrowserAfterStart)
             local function open_browser()
                 internal_log("Open browser now")
                 local preview_url = string.format(
-                    "http://127.0.0.1:3030/preview?fn_key=%s",
+                    "http://127.0.0.1:3040/preview?fn_key=%s",
                     fn_key
                 )
                 __open_resource(preview_url)
@@ -851,30 +851,30 @@ M.start = function(openBrowserAfterStart)
 end
 
 M.cleanup = function()
-    __post2("127.0.0.1", 3030, "/stop", {})
+    __post2("127.0.0.1", 3040, "/stop", {})
     M.server_started = false
 end
 
 M.indicator = function(flag)
-    __post2("127.0.0.1", 3030, "/indicator", { indicator = flag })
+    __post2("127.0.0.1", 3040, "/indicator", { indicator = flag })
 end
 M.indicator_on = function()
-    __post2("127.0.0.1", 3030, "/indicator", { indicator = 1 })
+    __post2("127.0.0.1", 3040, "/indicator", { indicator = 1 })
 end
 M.indicator_off = function()
-    __post2("127.0.0.1", 3030, "/indicator", { indicator = 0 })
+    __post2("127.0.0.1", 3040, "/indicator", { indicator = 0 })
 end
 M.indicator_as_config = function()
-    __post2("127.0.0.1", 3030, "/indicator", { indicator = -1 })
+    __post2("127.0.0.1", 3040, "/indicator", { indicator = -1 })
 end
 
 M.togglenav = function()
-    __post2("127.0.0.1", 3030, "/togglenav")
+    __post2("127.0.0.1", 3040, "/togglenav")
     M.preview()
 end
 
 M.stop = function()
-    __post2("127.0.0.1", 3030, "/stop", {})
+    __post2("127.0.0.1", 3040, "/stop", {})
     M.server_started = false
     pcall(vim.api.nvim_del_augroup_by_name, "smp_group")
 end
@@ -908,7 +908,7 @@ M.preview = function()
     local fn_key = fn_key_map[fn]
     local function open_browser()
         __open_resource(
-            string.format("http://127.0.0.1:3030/preview?fn_key=%s", fn_key)
+            string.format("http://127.0.0.1:3040/preview?fn_key=%s", fn_key)
         )
     end
     vim.defer_fn(open_browser, 300)
@@ -919,7 +919,7 @@ M.todos = function()
         M.start(true)
     end
     local function open_browser()
-        __open_resource(string.format("http://127.0.0.1:3030/todos"))
+        __open_resource(string.format("http://127.0.0.1:3040/todos"))
     end
     vim.defer_fn(open_browser, 300)
 end
@@ -941,7 +941,7 @@ M.remark = function()
     local fn_key = fn_key_map[fn]
     local function open_browser()
         __open_resource(
-            string.format("http://127.0.0.1:3030/remark?fn=%s", fn_key)
+            string.format("http://127.0.0.1:3040/remark?fn=%s", fn_key)
         )
     end
     vim.defer_fn(open_browser, 300)

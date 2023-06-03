@@ -1,7 +1,7 @@
 function change_preview_tab_to(url) {
 	let should_change = false;
 	chrome.tabs.query(
-		{ active: true, currentWindow: true, url: 'http://127.0.0.1:3030/preview?fn_key=*' },
+		{ active: true, currentWindow: true, url: 'http://127.0.0.1:3040/preview?fn_key=*' },
 		function (tabs) {
 			if (tabs.length > 0) {
 				var tab = tabs[0];
@@ -21,12 +21,12 @@ function change_preview_tab_to(url) {
 	);
 }
 function get_fn_key() {
-	var url = 'http://127.0.0.1:3030/get_fn_key';
+	var url = 'http://127.0.0.1:3040/get_fn_key';
 	fetch(url)
 		.then((response) => response.json())
 		.then((data) => {
 			if (data.fn_key) {
-				let url = 'http://127.0.0.1:3030/preview?fn_key=' + data.fn_key;
+				let url = 'http://127.0.0.1:3040/preview?fn_key=' + data.fn_key;
 				change_preview_tab_to(url);
 			}
 		})
@@ -75,7 +75,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 // 		const fileNameWithPath = match ? match[1] : '';
 // 		if (fileNameWithPath !== '') {
 // 			console.log(fileNameWithPath);
-// 			fetch('http://127.0.0.1:3030/editThis?path=' + fileNameWithPath);
+// 			fetch('http://127.0.0.1:3040/editThis?path=' + fileNameWithPath);
 // 		}
 // 	});
 // });
