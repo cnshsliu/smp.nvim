@@ -1179,7 +1179,7 @@ M.insert_blank_line = function()
     insert_empty_lines_between_nonempty_lines()
 end
 
-local function edit_file(file_name)
+local function edit_file(file_name, line_number)
     -- Check if the file is already open in a buffer
     local bufnr = vim.fn.bufnr(file_name)
 
@@ -1190,6 +1190,7 @@ local function edit_file(file_name)
         -- If the file is open in a buffer, switch to the buffer
         vim.cmd("buffer " .. bufnr)
     end
+    vim.api.nvim_win_set_cursor(0, { tonumber( line_number)+1, 0 })
     M.preview()
 end
 
@@ -1256,7 +1257,7 @@ local function watch_file(filepath)
             if file_path and ln then
                 vim.schedule(function()
                     internal_log(ln)
-                    edit_file(file_path)
+                    edit_file(file_path, ln)
                 end)
             else
                 local file_name, line_number =
