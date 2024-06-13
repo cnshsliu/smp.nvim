@@ -1,4 +1,5 @@
 "use strict";
+const { spawn } = require("child_process");
 const marked = require("marked");
 const childProcess = require("child_process");
 const katex = require("katex");
@@ -1815,7 +1816,6 @@ const init = async () => {
                 .replace(smpConfig.home, "")
                 .replace(/^\//, "")
                 .replace(/.md$/, ""),
-              path: filepath.replace(smpConfig.home, "").replace(/^\//, ""),
             });
           }
         }
@@ -1837,11 +1837,30 @@ const init = async () => {
     handler: async (request, h) => {
       const PLD = request.payload;
       const content = await readFile(
-        path.join(smpConfig.home, PLD.filePath),
+        path.join(smpConfig.home, PLD.title + ".md"),
         "utf8"
       );
       const ret = { path: PLD.filePath, content: content };
       return h.response(ret).header("Access-Control-Allow-Origin", "*");
+    },
+  });
+
+  server.route({
+    method: "POST",
+    path: "/mind/localedit",
+    handler: async (request, h) => {
+      const PLD = request.payload;
+      const nvimPath = "/opt/homebrew/bin/neovide";
+      const filePath = path.join(smpConfig.home, PLD.title + ".md");
+
+      const nvim = spawn(nvimPath, [filePath], {
+        detached: true,
+        stdio: "ignore",
+      });
+
+      nvim.unref();
+
+      return h.response("okay").header("Access-Control-Allow-Origin", "*");
     },
   });
 
