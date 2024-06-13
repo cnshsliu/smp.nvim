@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "smp",
+      "script": "smp.js",
+      "watch": ["smp.js"],
+      "ignore_watch": ["node_modules"],
+      "watch_options": {
+        "usePolling": true,
+        "alwaysStat": true,
+        "useFsEvents": false
+      }
+    }
+  ]
+}
